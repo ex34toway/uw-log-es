@@ -23,6 +23,15 @@ public class LogClient {
     }
 
     /**
+     * 注册日志类型
+     *
+     * @param logClass
+     */
+    public void regLogObject(Class<?> logClass) {
+        logService.regLogObject(logClass);
+    }
+
+    /**
      * 写日志
      *
      * @param source 日志对象

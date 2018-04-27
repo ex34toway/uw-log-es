@@ -1,6 +1,7 @@
 package zwy.common.log.client.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.apache.commons.lang.StringUtils;
@@ -11,10 +12,12 @@ import uw.httpclient.http.HttpHelper;
 import uw.httpclient.http.HttpInterface;
 import uw.httpclient.http.ObjectMapper;
 import uw.httpclient.json.JsonInterfaceHelper;
+import uw.httpclient.util.BufferRequestBody;
 import zwy.common.log.client.LogClientProperties;
 import zwy.common.log.client.vo.SearchResponse;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 日志服务
@@ -31,6 +34,11 @@ public class LogService {
     private final HttpInterface httpInterface;
 
     private final LogClientProperties logClientProperties;
+
+    /**
+     * 注册Mapping,<Class<?>,String>
+     */
+    private final Map<Class<?>,String> regMap = Maps.newHashMap();
 
     public LogService(final LogClientProperties logClientProperties) {
         this.httpInterface = new JsonInterfaceHelper(new HttpConfig.Builder()
@@ -75,17 +83,32 @@ public class LogService {
     }
 
     /**
+     * 注册日志类型
+     *
+     * @param logClass
+     */
+    public void regLogObject(Class<?> logClass) {
+        regMap.put(logClass,logClass.getName().toLowerCase());
+    }
+
+    /**
      * 写日志
      *
      * @param source 日志对象
      */
     public void writeLog(Object source) {
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEsConfig().getClusters());
-        urlBuilder.append("/").append(source.getClass().getName().toLowerCase()).append("/")
+        String index = regMap.get(source.getClass());
+        if (StringUtils.isBlank(index)){
+            return;
+        }
+        StringBuilder urlBuilder = new StringBuilder(200);
+        urlBuilder.append(logClientProperties.getEsConfig().getClusters())
+                .append("/").append(index).append("/")
                 .append(INDEX_TYPE);
         try {
             httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .post(RequestBody.create(HttpHelper.JSON_UTF8, ObjectMapper.DEFAULT_JSON_MAPPER.toString(source))).build(), String.class);
+                    .post(RequestBody.create(HttpHelper.JSON_UTF8,
+                            ObjectMapper.DEFAULT_JSON_MAPPER.toString(source))).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(),e);
         }
@@ -98,24 +121,30 @@ public class LogService {
      * @param <T>
      */
     public <T> void writeBulkLog(List<T> sourceList) {
-        if(sourceList == null || sourceList.isEmpty()){
+        if (sourceList == null || sourceList.isEmpty()) {
             return;
         }
-        String index = sourceList.get(0).getClass().getName().toLowerCase();
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEsConfig().getClusters());
-        urlBuilder.append("/").append("_bulk");
+        String index = regMap.get(sourceList.get(0).getClass());
+        if (StringUtils.isBlank(index))
+            return;
+        StringBuilder urlBuilder = new StringBuilder(50);
+        urlBuilder.append(logClientProperties.getEsConfig().getClusters())
+                .append("/").append("_bulk");
+        okio.Buffer okBuffer = new okio.Buffer();
         try {
-            StringBuilder bulkBody = new StringBuilder();
-            for(T source : sourceList){
-                bulkBody.append("{ \"index\": { \"_index\": \"").append(index)
-                        .append("\", \"_type\": \"").append(INDEX_TYPE)
-                        .append("\"}}").append("\n");
-                bulkBody.append(ObjectMapper.DEFAULT_JSON_MAPPER.toString(source)).append("\n");
+            for (T source : sourceList) {
+                okBuffer.writeUtf8("{\"index\":{\"_index\":\"")
+                        .writeUtf8(index)
+                        .writeUtf8("\",\"_type\":\"")
+                        .writeUtf8(INDEX_TYPE)
+                        .writeUtf8("\"}}\n");
+                ObjectMapper.DEFAULT_JSON_MAPPER.write(okBuffer.outputStream(), source);
+                okBuffer.write(okio.ByteString.encodeUtf8("\n"));
             }
             httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .post(RequestBody.create(HttpHelper.JSON_UTF8, bulkBody.toString())).build(), String.class);
+                    .post(BufferRequestBody.create(HttpHelper.JSON_UTF8, okBuffer)).build(), String.class);
         } catch (Exception e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(), e);
         }
     }
 

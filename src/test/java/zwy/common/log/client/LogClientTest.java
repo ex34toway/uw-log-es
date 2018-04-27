@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import zwy.common.log.client.service.LogService;
 import zwy.common.log.client.vo.LogInterface;
+import zwy.common.log.client.vo.LogInterfaceOrder;
 
 import java.util.Date;
 import java.util.List;
@@ -24,6 +25,8 @@ public class LogClientTest {
     public static void setUp() {
         LogClientProperties logClientProperties = new LogClientProperties();
         logClient = new LogClient(new LogService(logClientProperties));
+        logClient.regLogObject(LogInterface.class);
+        logClient.regLogObject(LogInterfaceOrder.class);
     }
 
     @Test

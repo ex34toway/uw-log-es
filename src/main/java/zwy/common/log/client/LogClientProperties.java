@@ -2,10 +2,6 @@ package zwy.common.log.client;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * 日志接口服务客户端属性配置类
  *
