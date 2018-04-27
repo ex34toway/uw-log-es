@@ -98,19 +98,24 @@ public class LogService {
      */
     public void writeLog(Object source) {
         String index = regMap.get(source.getClass());
-        if (StringUtils.isBlank(index)){
+        if (StringUtils.isBlank(index)) {
             return;
         }
         StringBuilder urlBuilder = new StringBuilder(200);
         urlBuilder.append(logClientProperties.getEsConfig().getClusters())
                 .append("/").append(index).append("/")
                 .append(INDEX_TYPE);
+        String resp = null;
+        try {
+            resp = ObjectMapper.DEFAULT_JSON_MAPPER.toString(source);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
         try {
             httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .post(RequestBody.create(HttpHelper.JSON_UTF8,
-                            ObjectMapper.DEFAULT_JSON_MAPPER.toString(source))).build(), String.class);
+                    .post(RequestBody.create(HttpHelper.JSON_UTF8, resp)).build(), String.class);
         } catch (Exception e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage() + ",log: " + resp, e);
         }
     }
 
@@ -125,8 +130,9 @@ public class LogService {
             return;
         }
         String index = regMap.get(sourceList.get(0).getClass());
-        if (StringUtils.isBlank(index))
+        if (StringUtils.isBlank(index)) {
             return;
+        }
         StringBuilder urlBuilder = new StringBuilder(50);
         urlBuilder.append(logClientProperties.getEsConfig().getClusters())
                 .append("/").append("_bulk");
@@ -139,12 +145,12 @@ public class LogService {
                         .writeUtf8(INDEX_TYPE)
                         .writeUtf8("\"}}\n");
                 ObjectMapper.DEFAULT_JSON_MAPPER.write(okBuffer.outputStream(), source);
-                okBuffer.write(okio.ByteString.encodeUtf8("\n"));
+                okBuffer.writeUtf8("\n");
             }
             httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
                     .post(BufferRequestBody.create(HttpHelper.JSON_UTF8, okBuffer)).build(), String.class);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage() + ",log: " + okBuffer.toString(), e);
         }
     }
 
