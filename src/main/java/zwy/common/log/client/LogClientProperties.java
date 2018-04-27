@@ -18,13 +18,25 @@ public class LogClientProperties {
      */
     public static class EsConfig {
 
+        /**
+         * 连接超时
+         */
         private long connectTimeout = 10000;
 
+        /**
+         * 读超时
+         */
         private long readTimeout = 10000;
 
+        /**
+         * 写超时
+         */
         private long writeTimeout = 10000;
 
-        private String clusters = "http://localhost:9200";
+        /**
+         * ES集群HTTP REST地址
+         */
+        private String clusters = null;
 
         public long getConnectTimeout() {
             return connectTimeout;

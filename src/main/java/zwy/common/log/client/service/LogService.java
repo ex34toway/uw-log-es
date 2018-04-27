@@ -97,6 +97,9 @@ public class LogService {
      * @param source 日志对象
      */
     public void writeLog(Object source) {
+        if(StringUtils.isBlank(logClientProperties.getEsConfig().getClusters())) {
+            return;
+        }
         String index = regMap.get(source.getClass());
         if (StringUtils.isBlank(index)) {
             return;
@@ -127,6 +130,9 @@ public class LogService {
      */
     public <T> void writeBulkLog(List<T> sourceList) {
         if (sourceList == null || sourceList.isEmpty()) {
+            return;
+        }
+        if(StringUtils.isBlank(logClientProperties.getEsConfig().getClusters())) {
             return;
         }
         String index = regMap.get(sourceList.get(0).getClass());
