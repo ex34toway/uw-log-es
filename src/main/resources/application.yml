@@ -1,6 +1,4 @@
-zwy:
-  common:
-    log:
-      client:
-        es-config:
-          clusters: http://localhost:9200
+uw:
+  log:
+    es-config:
+      clusters: http://localhost:9200

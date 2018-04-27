@@ -1,13 +1,13 @@
-package zwy.common.log.client;
+package uw.log;
 
 import com.google.common.base.Stopwatch;
 import org.apache.commons.lang.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import zwy.common.log.client.service.LogService;
-import zwy.common.log.client.vo.LogInterface;
-import zwy.common.log.client.vo.LogInterfaceOrder;
+import uw.log.service.LogService;
+import uw.log.vo.LogInterface;
+import uw.log.vo.LogInterfaceOrder;
 
 import java.util.Date;
 import java.util.List;
@@ -24,6 +24,9 @@ public class LogClientTest {
     @BeforeClass
     public static void setUp() {
         LogClientProperties logClientProperties = new LogClientProperties();
+        LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
+        esConfig.setClusters("http://localhost:9200");
+        logClientProperties.setEsConfig(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));
         logClient.regLogObject(LogInterface.class);
         logClient.regLogObject(LogInterfaceOrder.class);

@@ -1,4 +1,4 @@
-package zwy.common.log.client;
+package uw.log;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Acris,liliang
  * @since 2018/4/24.
  */
-@ConfigurationProperties(prefix = "zwy.common.log.client")
+@ConfigurationProperties(prefix = "uw.log")
 public class LogClientProperties {
 
     private EsConfig esConfig = new EsConfig();

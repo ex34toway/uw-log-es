@@ -1,9 +1,9 @@
-package zwy.common.log.client;
+package uw.log;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import zwy.common.log.client.service.LogService;
+import uw.log.service.LogService;
 
 /**
  * 日志接口服务客户端自动配置类

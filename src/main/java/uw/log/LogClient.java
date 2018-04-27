@@ -1,8 +1,8 @@
-package zwy.common.log.client;
+package uw.log;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import zwy.common.log.client.service.LogService;
+import uw.log.service.LogService;
 
 import java.util.List;
 

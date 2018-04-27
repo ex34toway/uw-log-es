@@ -1,4 +1,4 @@
-package zwy.common.log.client.vo;
+package uw.log.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
