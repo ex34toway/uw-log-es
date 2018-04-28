@@ -1,8 +1,8 @@
-package uw.log;
+package uw.log.es;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uw.log.service.LogService;
+import uw.log.es.service.LogService;
 
 import java.util.List;
 

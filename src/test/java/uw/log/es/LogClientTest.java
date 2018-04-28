@@ -1,13 +1,13 @@
-package uw.log;
+package uw.log.es;
 
 import com.google.common.base.Stopwatch;
 import org.apache.commons.lang.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import uw.log.service.LogService;
-import uw.log.vo.LogInterface;
-import uw.log.vo.LogInterfaceOrder;
+import uw.log.es.service.LogService;
+import uw.log.es.vo.LogInterface;
+import uw.log.es.vo.LogInterfaceOrder;
 
 import java.util.Date;
 import java.util.List;

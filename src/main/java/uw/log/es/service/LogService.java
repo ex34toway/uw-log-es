@@ -1,4 +1,4 @@
-package uw.log.service;
+package uw.log.es.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -13,8 +13,8 @@ import uw.httpclient.http.HttpInterface;
 import uw.httpclient.http.ObjectMapper;
 import uw.httpclient.json.JsonInterfaceHelper;
 import uw.httpclient.util.BufferRequestBody;
-import uw.log.LogClientProperties;
-import uw.log.vo.SearchResponse;
+import uw.log.es.LogClientProperties;
+import uw.log.es.vo.SearchResponse;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package uw.log.vo;
+package uw.log.es.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -6,40 +6,43 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
 
 /**
- * 一般接口日志Vo
+ * 订单接口日志Vo
  *
  * @author liliang
  * @since 2018-04-25
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LogInterface implements Serializable {
-    private static final long serialVersionUID = -6488666771783357081L;
+public class LogInterfaceOrder implements Serializable {
+    private static final long serialVersionUID = 6795821538602784086L;
 
-    public static LogInterface init(int interfaceType, int interfaceConfigId, long mchId, int productType, long productId, String interfaceProductId, String interfaceFunction) {
-		LogInterface logInterface = new LogInterface();
-		logInterface.setInterfaceType(interfaceType);
-		logInterface.setInterfaceConfigId(interfaceConfigId);
-		logInterface.setMchId(mchId);
-		logInterface.setProductType(productType);
-		logInterface.setProductId(productId);
-		logInterface.setInterfaceProductId(interfaceProductId);
-		logInterface.setInterfaceFunction(interfaceFunction);
-		return logInterface;
-	}
+    public static LogInterfaceOrder init(int interfaceType, long interfaceConfigId,
+                                         long orderId, long parentMchId, long agentMchId,
+                                         long productId, String interfaceProductId, String interfaceFunction) {
+        LogInterfaceOrder logInterfaceOrder = new LogInterfaceOrder();
+        logInterfaceOrder.setInterfaceType(interfaceType);
+        logInterfaceOrder.setInterfaceConfigId(interfaceConfigId);
+        logInterfaceOrder.setOrderId(orderId);
+        logInterfaceOrder.setParentMchId(parentMchId);
+        logInterfaceOrder.setAgentMchId(agentMchId);
+        logInterfaceOrder.setProductId(productId);
+        logInterfaceOrder.setInterfaceProductId(interfaceProductId);
+        logInterfaceOrder.setInterfaceFunction(interfaceFunction);
+        return logInterfaceOrder;
+    }
 
-	public LogInterface request(String requestBody) {
-		setRequestBody(requestBody);
-		setRequestDate(new java.util.Date());
-		return this;
-	}
+    public LogInterfaceOrder request(String requestBody) {
+        setRequestBody(requestBody);
+        setRequestDate(new java.util.Date());
+        return this;
+    }
 
-	public LogInterface response(String responseBody, int success) {
-		setResponseBody(responseBody);
-		setResponseDate(new java.util.Date());
-		setStatus(success);
-		return this;
-	}
+    public LogInterfaceOrder response(String responseBody,int status) {
+        setResponseBody(responseBody);
+        setResponseDate(new java.util.Date());
+        setStatus(status);
+        return this;
+    }
 
 	/**
 	 * 接口类型.1供应商 2渠道商
@@ -52,9 +55,24 @@ public class LogInterface implements Serializable {
 	private long interfaceConfigId = -1;
 
 	/**
+	 * 系统订单号
+	 */
+	private long orderId = -1;
+
+	/**
+	 * 供应商订单号
+	 */
+	private String interfaceOrderId;
+
+	/**
 	 * 运营商ID
 	 */
-	private long mchId = -1;
+	private long parentMchId = -1;
+
+	/**
+	 * 分销商ID
+	 */
+	private long agentMchId = -1;
 
 	/**
 	 * 系统产品类型
@@ -62,12 +80,12 @@ public class LogInterface implements Serializable {
 	private int productType = -1;
 
 	/**
-	 * 产品ID
+	 * 系统产品ID
 	 */
 	private long productId = -1;
 
 	/**
-	 * 接口产品ID
+	 * 对接产品ID
 	 */
 	private String interfaceProductId;
 
@@ -132,18 +150,63 @@ public class LogInterface implements Serializable {
 	}
 
 	/**
-	 * @return the mchId
+	 * @return the orderId
 	 */
-	public long getMchId() {
-		return mchId;
+	public long getOrderId() {
+		return orderId;
 	}
 
 	/**
-	 * @param mchId
-	 *            the mchId to set
+	 * @param orderId
+	 *            the orderId to set
 	 */
-	public void setMchId(long mchId) {
-		this.mchId = mchId;
+	public void setOrderId(long orderId) {
+		this.orderId = orderId;
+	}
+
+	/**
+	 * @return the interfaceOrderId
+	 */
+	public String getInterfaceOrderId() {
+		return interfaceOrderId;
+	}
+
+	/**
+	 * @param interfaceOrderId
+	 *            the interfaceOrderId to set
+	 */
+	public void setInterfaceOrderId(String interfaceOrderId) {
+		this.interfaceOrderId = interfaceOrderId;
+	}
+
+	/**
+	 * @return the parentMchId
+	 */
+	public long getParentMchId() {
+		return parentMchId;
+	}
+
+	/**
+	 * @param parentMchId
+	 *            the parentMchId to set
+	 */
+	public void setParentMchId(long parentMchId) {
+		this.parentMchId = parentMchId;
+	}
+
+	/**
+	 * @return the agentMchId
+	 */
+	public long getAgentMchId() {
+		return agentMchId;
+	}
+
+	/**
+	 * @param agentMchId
+	 *            the agentMchId to set
+	 */
+	public void setAgentMchId(long agentMchId) {
+		this.agentMchId = agentMchId;
 	}
 
 	/**

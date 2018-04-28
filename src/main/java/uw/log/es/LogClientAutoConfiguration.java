@@ -1,9 +1,9 @@
-package uw.log;
+package uw.log.es;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uw.log.service.LogService;
+import uw.log.es.service.LogService;
 
 /**
  * 日志接口服务客户端自动配置类

@@ -1,4 +1,4 @@
-package uw.log;
+package uw.log.es;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
