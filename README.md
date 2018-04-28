@@ -1,6 +1,6 @@
 [TOC]
 
-# es-log-client
+# uw-log-client
 
 #### 更新日志
     0.0.4 注释完善,没有配置直接不写入日志
