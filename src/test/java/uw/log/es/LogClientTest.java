@@ -26,7 +26,9 @@ public class LogClientTest {
         LogClientProperties logClientProperties = new LogClientProperties();
         LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
         esConfig.setClusters("http://localhost:9200");
-        logClientProperties.setEsConfig(esConfig);
+        esConfig.setUsername("admin");
+        esConfig.setPassword("admin");
+        logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));
         logClient.regLogObject(LogInterface.class);
         logClient.regLogObject(LogInterfaceOrder.class);

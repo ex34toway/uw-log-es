@@ -2,6 +2,7 @@ package uw.log.es.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import okhttp3.Credentials;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.apache.commons.lang.StringUtils;
@@ -13,7 +14,6 @@ import uw.httpclient.http.HttpInterface;
 import uw.httpclient.http.ObjectMapper;
 import uw.httpclient.json.JsonInterfaceHelper;
 import uw.httpclient.util.BufferRequestBody;
-import uw.httpclient.util.HttpBasicAuthenticator;
 import uw.log.es.LogClientProperties;
 import uw.log.es.vo.SearchResponse;
 
@@ -34,7 +34,20 @@ public class LogService {
 
     private final HttpInterface httpInterface;
 
-    private final LogClientProperties logClientProperties;
+    /**
+     * es集群地址
+     */
+    private final String clusters;
+
+    /**
+     * 用户名
+     */
+    private final String username;
+
+    /**
+     * 用户密码
+     */
+    private final String password;
 
     /**
      * 注册Mapping,<Class<?>,String>
@@ -43,14 +56,14 @@ public class LogService {
 
     public LogService(final LogClientProperties logClientProperties) {
         this.httpInterface = new JsonInterfaceHelper(new HttpConfig.Builder()
-                .authenticator(new HttpBasicAuthenticator(logClientProperties.getEs().getUsername(),
-                        logClientProperties.getEs().getPassword()))
                 .retryOnConnectionFailure(true)
                 .connectTimeout(logClientProperties.getEs().getConnectTimeout())
                 .readTimeout(logClientProperties.getEs().getReadTimeout())
                 .writeTimeout(logClientProperties.getEs().getWriteTimeout())
                 .build());
-        this.logClientProperties = logClientProperties;
+        this.clusters = logClientProperties.getEs().getClusters();
+        this.username = logClientProperties.getEs().getUsername();
+        this.password = logClientProperties.getEs().getPassword();
     }
 
     /**
@@ -100,7 +113,7 @@ public class LogService {
      * @param source 日志对象
      */
     public void writeLog(Object source) {
-        if(StringUtils.isBlank(logClientProperties.getEs().getClusters())) {
+        if(StringUtils.isBlank(clusters)) {
             return;
         }
         String index = regMap.get(source.getClass());
@@ -108,7 +121,7 @@ public class LogService {
             return;
         }
         StringBuilder urlBuilder = new StringBuilder(200);
-        urlBuilder.append(logClientProperties.getEs().getClusters())
+        urlBuilder.append(clusters)
                 .append("/").append(index).append("/")
                 .append(INDEX_TYPE);
         String resp = null;
@@ -119,6 +132,7 @@ public class LogService {
         }
         try {
             httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
                     .post(RequestBody.create(HttpHelper.JSON_UTF8, resp)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage() + ",log: " + resp, e);
@@ -135,7 +149,7 @@ public class LogService {
         if (sourceList == null || sourceList.isEmpty()) {
             return;
         }
-        if(StringUtils.isBlank(logClientProperties.getEs().getClusters())) {
+        if(StringUtils.isBlank(clusters)) {
             return;
         }
         String index = regMap.get(sourceList.get(0).getClass());
@@ -143,7 +157,7 @@ public class LogService {
             return;
         }
         StringBuilder urlBuilder = new StringBuilder(50);
-        urlBuilder.append(logClientProperties.getEs().getClusters())
+        urlBuilder.append(clusters)
                 .append("/").append("_bulk");
         okio.Buffer okBuffer = new okio.Buffer();
         try {
@@ -156,7 +170,10 @@ public class LogService {
                 ObjectMapper.DEFAULT_JSON_MAPPER.write(okBuffer.outputStream(), source);
                 okBuffer.writeUtf8("\n");
             }
+            // 此处不能使用HttpBasicAuthenticator因为OkHttp的灵活性,它不会一开始就带上Basic验证头,
+            // 直到服务器返回401才会去执行authenticator的代码,这时okBuffer已经被读了...
             httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
                     .post(BufferRequestBody.create(HttpHelper.JSON_UTF8, okBuffer)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage() + ",log: " + okBuffer.toString(), e);
@@ -173,7 +190,7 @@ public class LogService {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> simpleQueryLog(Class<T> tClass,String index,String simpleQuery) {
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEs().getClusters());
+        StringBuilder urlBuilder = new StringBuilder(clusters);
         urlBuilder.append("/").append(index).append("/")
                 .append("_search?type=").append(INDEX_TYPE);
         if (StringUtils.isNotBlank(simpleQuery)) {
@@ -182,6 +199,7 @@ public class LogService {
         String resp = null;
         try {
             resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
                     .get().build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -199,12 +217,13 @@ public class LogService {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> dslQueryLog(Class<T> tClass,String index,String dslQuery) {
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEs().getClusters());
+        StringBuilder urlBuilder = new StringBuilder(clusters);
         urlBuilder.append("/").append(index).append("/")
                 .append("_search?type=").append(INDEX_TYPE);
         String resp = null;
         try {
             resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
                     .post(RequestBody.create(HttpHelper.JSON_UTF8,dslQuery)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -220,11 +239,12 @@ public class LogService {
      * @return
      */
     public <T> List<T> sqlQueryLog(Class<T> tClass,String sql) {
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEs().getClusters());
+        StringBuilder urlBuilder = new StringBuilder(clusters);
         urlBuilder.append("/").append("_sql?_type=").append(INDEX_TYPE);
         String resp = null;
         try {
             resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
                     .post(RequestBody.create(HttpHelper.JSON_UTF8,sql)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
