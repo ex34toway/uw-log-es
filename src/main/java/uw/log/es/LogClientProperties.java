@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "uw.log")
 public class LogClientProperties {
 
-    private EsConfig esConfig = new EsConfig();
+    private EsConfig es = new EsConfig();
 
     /**
      * ES主机配置
@@ -32,6 +32,16 @@ public class LogClientProperties {
          * 写超时
          */
         private long writeTimeout = 10000;
+
+        /**
+         * 用户名
+         */
+        private String username;
+
+        /**
+         * 密码
+         */
+        private String password;
 
         /**
          * ES集群HTTP REST地址
@@ -62,6 +72,22 @@ public class LogClientProperties {
             this.writeTimeout = writeTimeout;
         }
 
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
         public String getClusters() {
             return clusters;
         }
@@ -71,11 +97,11 @@ public class LogClientProperties {
         }
     }
 
-    public EsConfig getEsConfig() {
-        return esConfig;
+    public EsConfig getEs() {
+        return es;
     }
 
-    public void setEsConfig(EsConfig esConfig) {
-        this.esConfig = esConfig;
+    public void setEs(EsConfig es) {
+        this.es = es;
     }
 }

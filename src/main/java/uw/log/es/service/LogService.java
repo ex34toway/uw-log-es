@@ -13,6 +13,7 @@ import uw.httpclient.http.HttpInterface;
 import uw.httpclient.http.ObjectMapper;
 import uw.httpclient.json.JsonInterfaceHelper;
 import uw.httpclient.util.BufferRequestBody;
+import uw.httpclient.util.HttpBasicAuthenticator;
 import uw.log.es.LogClientProperties;
 import uw.log.es.vo.SearchResponse;
 
@@ -42,10 +43,12 @@ public class LogService {
 
     public LogService(final LogClientProperties logClientProperties) {
         this.httpInterface = new JsonInterfaceHelper(new HttpConfig.Builder()
+                .authenticator(new HttpBasicAuthenticator(logClientProperties.getEs().getUsername(),
+                        logClientProperties.getEs().getPassword()))
                 .retryOnConnectionFailure(true)
-                .connectTimeout(logClientProperties.getEsConfig().getConnectTimeout())
-                .readTimeout(logClientProperties.getEsConfig().getReadTimeout())
-                .writeTimeout(logClientProperties.getEsConfig().getWriteTimeout())
+                .connectTimeout(logClientProperties.getEs().getConnectTimeout())
+                .readTimeout(logClientProperties.getEs().getReadTimeout())
+                .writeTimeout(logClientProperties.getEs().getWriteTimeout())
                 .build());
         this.logClientProperties = logClientProperties;
     }
@@ -97,7 +100,7 @@ public class LogService {
      * @param source 日志对象
      */
     public void writeLog(Object source) {
-        if(StringUtils.isBlank(logClientProperties.getEsConfig().getClusters())) {
+        if(StringUtils.isBlank(logClientProperties.getEs().getClusters())) {
             return;
         }
         String index = regMap.get(source.getClass());
@@ -105,7 +108,7 @@ public class LogService {
             return;
         }
         StringBuilder urlBuilder = new StringBuilder(200);
-        urlBuilder.append(logClientProperties.getEsConfig().getClusters())
+        urlBuilder.append(logClientProperties.getEs().getClusters())
                 .append("/").append(index).append("/")
                 .append(INDEX_TYPE);
         String resp = null;
@@ -132,7 +135,7 @@ public class LogService {
         if (sourceList == null || sourceList.isEmpty()) {
             return;
         }
-        if(StringUtils.isBlank(logClientProperties.getEsConfig().getClusters())) {
+        if(StringUtils.isBlank(logClientProperties.getEs().getClusters())) {
             return;
         }
         String index = regMap.get(sourceList.get(0).getClass());
@@ -140,7 +143,7 @@ public class LogService {
             return;
         }
         StringBuilder urlBuilder = new StringBuilder(50);
-        urlBuilder.append(logClientProperties.getEsConfig().getClusters())
+        urlBuilder.append(logClientProperties.getEs().getClusters())
                 .append("/").append("_bulk");
         okio.Buffer okBuffer = new okio.Buffer();
         try {
@@ -170,7 +173,7 @@ public class LogService {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> simpleQueryLog(Class<T> tClass,String index,String simpleQuery) {
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEsConfig().getClusters());
+        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEs().getClusters());
         urlBuilder.append("/").append(index).append("/")
                 .append("_search?type=").append(INDEX_TYPE);
         if (StringUtils.isNotBlank(simpleQuery)) {
@@ -196,7 +199,7 @@ public class LogService {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> dslQueryLog(Class<T> tClass,String index,String dslQuery) {
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEsConfig().getClusters());
+        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEs().getClusters());
         urlBuilder.append("/").append(index).append("/")
                 .append("_search?type=").append(INDEX_TYPE);
         String resp = null;
@@ -217,7 +220,7 @@ public class LogService {
      * @return
      */
     public <T> List<T> sqlQueryLog(Class<T> tClass,String sql) {
-        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEsConfig().getClusters());
+        StringBuilder urlBuilder = new StringBuilder(logClientProperties.getEs().getClusters());
         urlBuilder.append("/").append("_sql?_type=").append(INDEX_TYPE);
         String resp = null;
         try {
