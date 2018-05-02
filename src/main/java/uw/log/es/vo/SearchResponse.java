@@ -220,7 +220,7 @@ public class SearchResponse<T> {
         /**
          * 1
          */
-        private long total;
+        private int total;
 
         /**
          * 1.0
@@ -236,12 +236,12 @@ public class SearchResponse<T> {
             return this.hits;
         }
 
-        public void setTotal(long total) {
+        public void setTotal(int total) {
             this.total = total;
         }
 
         @JsonProperty("total")
-        public long getTotal (){
+        public int getTotal (){
             return this.total;
         }
 
