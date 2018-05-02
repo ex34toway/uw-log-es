@@ -99,12 +99,45 @@ public class LogService {
     }
 
     /**
+     * 将查询结果映射成SearchResponse,便于应用组装分页
+     *
+     * @param resp
+     * @param tClass
+     * @param <T>
+     * @return
+     */
+    private <T> SearchResponse<T> mapQueryResponseToSearchResponse(String resp,Class<?> tClass) {
+        if (StringUtils.isBlank(resp)) {
+            return null;
+        }
+        SearchResponse<T> response = null;
+        try {
+            response = ObjectMapper.DEFAULT_JSON_MAPPER.parse(resp,
+                    ObjectMapper.DEFAULT_JSON_MAPPER
+                            .constructParametricType(SearchResponse.class, tClass));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return response;
+    }
+
+    /**
      * 注册日志类型
      *
      * @param logClass
      */
     public void regLogObject(Class<?> logClass) {
         regMap.put(logClass,logClass.getName().toLowerCase());
+    }
+
+    /**
+     * 查询日志索引
+     *
+     * @param logClass
+     * @return
+     */
+    public String getLogObjectIndex(Class<?> logClass) {
+        return regMap.get(logClass);
     }
 
     /**
@@ -208,6 +241,32 @@ public class LogService {
     }
 
     /**
+     * 简单日志查询
+     *
+     * @param tClass 日志对象类型
+     * @param simpleQuery 简单查询条件
+     * @param <T>
+     * @return
+     */
+    public <T> SearchResponse<T> simpleQueryLogSearchResponse(Class<T> tClass,String index, String simpleQuery) {
+        StringBuilder urlBuilder = new StringBuilder(clusters);
+        urlBuilder.append("/").append(index).append("/")
+                .append("_search?type=").append(INDEX_TYPE);
+        if (StringUtils.isNotBlank(simpleQuery)) {
+            urlBuilder.append("&").append(simpleQuery);
+        }
+        String resp = null;
+        try {
+            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
+                    .get().build(), String.class);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return mapQueryResponseToSearchResponse(resp,tClass);
+    }
+
+    /**
      * dsl查询日志
      *
      * @param tClass 日志对象类型
@@ -231,6 +290,31 @@ public class LogService {
         return mapQueryResponseToList(resp,tClass);
     }
 
+
+    /**
+     * dsl查询日志
+     *
+     * @param tClass 日志对象类型
+     * @param index 索引
+     * @param dslQuery dsl查询条件
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> SearchResponse<T> dslQueryLogSearchResponse(Class<T> tClass,String index,String dslQuery) {
+        StringBuilder urlBuilder = new StringBuilder(clusters);
+        urlBuilder.append("/").append(index).append("/")
+                .append("_search?type=").append(INDEX_TYPE);
+        String resp = null;
+        try {
+            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
+                    .post(RequestBody.create(HttpHelper.JSON_UTF8,dslQuery)).build(), String.class);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return mapQueryResponseToSearchResponse(resp,tClass);
+    }
+
     /**
      * dsl查询日志
      *
@@ -250,5 +334,26 @@ public class LogService {
             logger.error(e.getMessage(), e);
         }
         return mapQueryResponseToList(resp,tClass);
+    }
+
+    /**
+     * dsl查询日志
+     *
+     * @param tClass 日志对象类型
+     * @param sql sql
+     * @return
+     */
+    public <T> SearchResponse<T> sqlQueryLogSearchResponse(Class<T> tClass,String sql) {
+        StringBuilder urlBuilder = new StringBuilder(clusters);
+        urlBuilder.append("/").append("_sql?_type=").append(INDEX_TYPE);
+        String resp = null;
+        try {
+            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
+                    .header("Authorization", Credentials.basic(username, password))
+                    .post(RequestBody.create(HttpHelper.JSON_UTF8,sql)).build(), String.class);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return mapQueryResponseToSearchResponse(resp,tClass);
     }
 }

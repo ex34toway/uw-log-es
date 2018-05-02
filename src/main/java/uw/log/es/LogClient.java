@@ -3,6 +3,7 @@ package uw.log.es;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uw.log.es.service.LogService;
+import uw.log.es.vo.SearchResponse;
 
 import java.util.List;
 
@@ -29,6 +30,16 @@ public class LogClient {
      */
     public void regLogObject(Class<?> logClass) {
         logService.regLogObject(logClass);
+    }
+
+    /**
+     * 查询日志索引
+     *
+     * @param logClass
+     * @return
+     */
+    public String getLogObjectIndex(Class<?> logClass) {
+        return logService.getLogObjectIndex(logClass);
     }
 
     /**
@@ -63,6 +74,18 @@ public class LogClient {
     }
 
     /**
+     * 简单日志查询
+     *
+     * @param tClass 日志对象类型
+     * @param simpleQuery 简单查询条件
+     * @param <T>
+     * @return
+     */
+    public <T> SearchResponse<T> simpleQueryLogSearchResponse(Class<T> tClass, String simpleQuery) {
+        return logService.simpleQueryLogSearchResponse(tClass,tClass.getName().toLowerCase(),simpleQuery);
+    }
+
+    /**
      * dsl日志查询
      *
      * @param tClass 日志对象类型
@@ -78,11 +101,35 @@ public class LogClient {
      * dsl日志查询
      *
      * @param tClass 日志对象类型
+     * @param dslQuery dsl查询内容
+     * @param <T>
+     * @return
+     */
+    public <T> SearchResponse<T> dslQueryLogSearchResponse(Class<T> tClass,String dslQuery) {
+        return logService.dslQueryLogSearchResponse(tClass,tClass.getName().toLowerCase(),dslQuery);
+    }
+
+    /**
+     * dsl日志查询
+     *
+     * @param tClass 日志对象类型
      * @param sql sql查询,需要 es 安装 es-sql 插件
      * @param <T>
      * @return
      */
     public <T> List<T> sqlQueryLog(Class<T> tClass,String sql) {
         return logService.sqlQueryLog(tClass,sql);
+    }
+
+    /**
+     * dsl日志查询
+     *
+     * @param tClass 日志对象类型
+     * @param sql sql查询,需要 es 安装 es-sql 插件
+     * @param <T>
+     * @return
+     */
+    public <T> SearchResponse<T> sqlQueryLogSearchResponse(Class<T> tClass,String sql) {
+        return logService.sqlQueryLogSearchResponse(tClass,sql);
     }
 }

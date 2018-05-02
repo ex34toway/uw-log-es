@@ -8,6 +8,7 @@ import org.junit.Test;
 import uw.log.es.service.LogService;
 import uw.log.es.vo.LogInterface;
 import uw.log.es.vo.LogInterfaceOrder;
+import uw.log.es.vo.SearchResponse;
 
 import java.util.Date;
 import java.util.List;
@@ -143,8 +144,8 @@ public class LogClientTest {
 
     @Test
     public void testQueryLogBySql() {
-        List<LogInterface> dataList = logClient.sqlQueryLog(LogInterface.class,
-                "select * from zwy.common.log.client.vo.loginterface where responseDate > 1524666600000 limit 10 ");
-        dataList.size();
+        SearchResponse<LogInterface> response = logClient.sqlQueryLogSearchResponse(LogInterface.class,
+                "select * from "+logClient.getLogObjectIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
+        response.getHisResponse();
     }
 }
