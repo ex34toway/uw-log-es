@@ -50,6 +50,11 @@ public class LogService {
     private final String password;
 
     /**
+     * 是否需要Http Basic验证头
+     */
+    private final boolean isBasicAuth;
+
+    /**
      * 注册Mapping,<Class<?>,String>
      */
     private final Map<Class<?>,String> regMap = Maps.newHashMap();
@@ -64,6 +69,7 @@ public class LogService {
         this.clusters = logClientProperties.getEs().getClusters();
         this.username = logClientProperties.getEs().getUsername();
         this.password = logClientProperties.getEs().getPassword();
+        this.isBasicAuth = StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password);
     }
 
     /**
@@ -164,9 +170,11 @@ public class LogService {
             logger.error(e.getMessage(), e);
         }
         try {
-            httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
-                    .post(RequestBody.create(HttpHelper.JSON_UTF8, resp)).build(), String.class);
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            httpInterface.requestForObject(requestBuilder.post(RequestBody.create(HttpHelper.JSON_UTF8, resp)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage() + ",log: " + resp, e);
         }
@@ -205,8 +213,11 @@ public class LogService {
             }
             // 此处不能使用HttpBasicAuthenticator因为OkHttp的灵活性,它不会一开始就带上Basic验证头,
             // 直到服务器返回401才会去执行authenticator的代码,这时okBuffer已经被读了...
-            httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            httpInterface.requestForObject(requestBuilder
                     .post(BufferRequestBody.create(HttpHelper.JSON_UTF8, okBuffer)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage() + ",log: " + okBuffer.toString(), e);
@@ -231,9 +242,11 @@ public class LogService {
         }
         String resp = null;
         try {
-            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
-                    .get().build(), String.class);
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            resp = httpInterface.requestForObject(requestBuilder.get().build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -257,9 +270,11 @@ public class LogService {
         }
         String resp = null;
         try {
-            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
-                    .get().build(), String.class);
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            resp = httpInterface.requestForObject(requestBuilder.get().build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -281,8 +296,11 @@ public class LogService {
                 .append("_search?type=").append(INDEX_TYPE);
         String resp = null;
         try {
-            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            resp = httpInterface.requestForObject(requestBuilder
                     .post(RequestBody.create(HttpHelper.JSON_UTF8,dslQuery)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -306,8 +324,11 @@ public class LogService {
                 .append("_search?type=").append(INDEX_TYPE);
         String resp = null;
         try {
-            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            resp = httpInterface.requestForObject(requestBuilder
                     .post(RequestBody.create(HttpHelper.JSON_UTF8,dslQuery)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -327,8 +348,11 @@ public class LogService {
         urlBuilder.append("/").append("_sql?_type=").append(INDEX_TYPE);
         String resp = null;
         try {
-            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            resp = httpInterface.requestForObject(requestBuilder
                     .post(RequestBody.create(HttpHelper.JSON_UTF8,sql)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -348,8 +372,11 @@ public class LogService {
         urlBuilder.append("/").append("_sql?_type=").append(INDEX_TYPE);
         String resp = null;
         try {
-            resp = httpInterface.requestForObject(new Request.Builder().url(urlBuilder.toString())
-                    .header("Authorization", Credentials.basic(username, password))
+            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
+            if(isBasicAuth){
+                requestBuilder.header("Authorization", Credentials.basic(username, password));
+            }
+            resp = httpInterface.requestForObject(requestBuilder
                     .post(RequestBody.create(HttpHelper.JSON_UTF8,sql)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
