@@ -25,11 +25,12 @@ uw-log-es的主要特性:
 uw:
   log:
     es:
+      # 如果不配置 clusters 地址,将不会把日志发送到es服务端
+      clusters: http://localhost:9200
       # 如果不配置用户名和密码,将不会有Http Basic验证头
       username: admin
       password: admin
-      # 如果不配置 clusters 地址,将不会把日志发送到es服务端
-      clusters: http://localhost:9200
+
 ```
 
 #### 基本使用
@@ -42,11 +43,12 @@ uw:
  * @author liliang
  * @since 2018-05-03
  */
-@org.springframework.context.annotation.Configuration
-public class UWLogESConfig {
-    @Bean
-    public CommandLineRunner initLogClient(final LogClient logClient) {
-        return args -> logClient.regLogObject(MscLoginLog.class);
+@Service
+public class MyLoginLogService {
+    
+    @PostConstruct
+    public void initMyLoginLogService(final LogClient logClient) {
+        logClient.regLogObject(MscLoginLog.class);
     }
 }
 ```
