@@ -79,7 +79,9 @@ public class DemoWriteLog {
 
 ##### 日志查询
 在构建查询前,先选择你熟悉的查询方式,uw-log-es目前支持:
-1. 简单查询日志;
+1. 简单查询日志:
+
+
 ```java
 public class DemoSimpleQuery {
     /**
@@ -95,7 +97,9 @@ public class DemoSimpleQuery {
     }
 }
 ```
-2. DSL(Domain Specific Language)查询;
+2. DSL(Domain Specific Language)查询:
+
+
 ```java
 public class DemoDSLQuery {
     /**
@@ -129,7 +133,9 @@ public class DemoDSLQuery {
     }
 }
 ```
-3. SQL(Structured Query Language)查询;
+3. SQL(Structured Query Language)查询:
+
+
 ```java
 public class DemoSQLQuery {
     /**
