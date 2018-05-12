@@ -3,6 +3,7 @@
 # uw-log-es
 
 #### 更新日志
+    0.0.9 注册日志类型,索引名称修改lower_underscore风格
     0.0.8 按配置需要添加Http Basic验证头
     0.0.7 添加分页查询返回
     0.0.5 添加Http Basic认证支持,生产环境直接在es前挂nginx

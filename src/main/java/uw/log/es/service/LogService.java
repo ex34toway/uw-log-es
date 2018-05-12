@@ -1,5 +1,6 @@
 package uw.log.es.service;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import okhttp3.Credentials;
@@ -80,6 +81,7 @@ public class LogService {
      * @param <T>
      * @return
      */
+    @SuppressWarnings("unchecked")
     private <T> List<T> mapQueryResponseToList(String resp,Class<T> tClass) {
         if (StringUtils.isNotBlank(resp)) {
             SearchResponse<T> response = null;
@@ -133,7 +135,20 @@ public class LogService {
      * @param logClass
      */
     public void regLogObject(Class<?> logClass) {
-        regMap.put(logClass,logClass.getName().toLowerCase());
+        String className = logClass.getName();
+        int lastIndex = className.lastIndexOf(".");
+        String indexName = "";
+        if (lastIndex > 0) {
+            // 偏移一下,把'.'带上
+            lastIndex++;
+            String canonicalPath = className.substring(0, lastIndex);
+            String logVoName = className.substring(lastIndex, className.length());
+            indexName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, logVoName);
+            indexName = canonicalPath + indexName;
+        } else {
+            indexName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
+        }
+        regMap.put(logClass,indexName);
     }
 
     /**
