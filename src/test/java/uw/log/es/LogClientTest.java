@@ -5,6 +5,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import uw.httpclient.http.ObjectMapper;
 import uw.log.es.service.LogService;
 import uw.log.es.vo.LogInterface;
 import uw.log.es.vo.LogInterfaceOrder;
@@ -26,7 +27,7 @@ public class LogClientTest {
     public static void setUp() {
         LogClientProperties logClientProperties = new LogClientProperties();
         LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
-        esConfig.setClusters("http://192.168.88.16:9200");
+        esConfig.setClusters("http://localhost:9200");
         logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));
         logClient.regLogObject(LogInterface.class);
@@ -71,6 +72,66 @@ public class LogClientTest {
         logInterface.setResponseDate(new Date());
         logInterface.setResponseBody("吃了");
         logClient.log(logInterface);
+    }
+
+    @Test
+    public void testLogBuffer() throws Exception {
+        LogInterface logInterface = new LogInterface();
+        logInterface.setInterfaceType(1);
+        logInterface.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface.setProductType(10);
+        logInterface.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
+        logInterface.setInterfaceFunction("zwy.common.log.client.logInterface");
+        logInterface.setRequestDate(new Date());
+        logInterface.setRequestBody("你吃饭了吗?");
+        logInterface.setResponseDate(new Date());
+        logInterface.setResponseBody("吃了");
+        okio.Buffer buffer = new okio.Buffer();
+        ObjectMapper.DEFAULT_JSON_MAPPER.write(buffer.outputStream(),logInterface);
+        logClient.log(LogInterface.class,buffer);
+    }
+
+    @Test
+    public void testWriteBulkLogBuffer() throws Exception {
+        List<okio.Buffer> bufferList = Lists.newArrayList();
+        okio.Buffer buffer1 = new okio.Buffer();
+        List<LogInterface> dataList = Lists.newArrayList();
+        LogInterface logInterface1 = new LogInterface();
+        logInterface1.setInterfaceType(1);
+        logInterface1.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface1.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface1.setProductType(10);
+        logInterface1.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface1.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
+        logInterface1.setInterfaceFunction("zwy.common.log.client.logInterface");
+        logInterface1.setRequestDate(new Date());
+        logInterface1.setRequestBody("你吃饭了吗?");
+        logInterface1.setResponseDate(new Date());
+        logInterface1.setResponseBody("吃了");
+        dataList.add(logInterface1);
+        ObjectMapper.DEFAULT_JSON_MAPPER.write(buffer1.outputStream(),logInterface1);
+        bufferList.add(buffer1);
+
+        okio.Buffer buffer2 = new okio.Buffer();
+        LogInterface logInterface2 = new LogInterface();
+        logInterface2.setInterfaceType(1);
+        logInterface2.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface2.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface2.setProductType(10);
+        logInterface2.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface2.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
+        logInterface2.setInterfaceFunction("zwy.common.log.client.logInterface");
+        logInterface2.setRequestDate(new Date());
+        logInterface2.setRequestBody("你吃饭了吗?");
+        logInterface2.setResponseDate(new Date());
+        logInterface2.setResponseBody("吃了");
+        dataList.add(logInterface2);
+        ObjectMapper.DEFAULT_JSON_MAPPER.write(buffer2.outputStream(),logInterface2);
+        bufferList.add(buffer2);
+
+        logClient.bulkLog(LogInterface.class,bufferList);
     }
 
     @Test
@@ -143,7 +204,7 @@ public class LogClientTest {
     @Test
     public void testQueryLogBySql() {
         SearchResponse<LogInterface> response = logClient.sqlQueryLogSearchResponse(LogInterface.class,
-                "select * from "+logClient.getLogObjectIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
+                "select * from "+logClient.getIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
         response.getHisResponse();
     }
 }

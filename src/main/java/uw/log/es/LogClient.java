@@ -38,8 +38,8 @@ public class LogClient {
      * @param logClass
      * @return
      */
-    public String getLogObjectIndex(Class<?> logClass) {
-        return logService.getLogObjectIndex(logClass);
+    public String getIndex(Class<?> logClass) {
+        return logService.getIndex(logClass);
     }
 
     /**
@@ -49,6 +49,16 @@ public class LogClient {
      */
     public void log(Object source) {
         logService.writeLog(source);
+    }
+
+    /**
+     * 写日志
+     *
+     * @param logClass - 日志类型
+     * @param buffer - 日志Buffer
+     */
+    public void log(Class<?> logClass,okio.Buffer buffer) {
+        logService.writeLog(logClass,buffer);
     }
 
     /**
@@ -62,6 +72,16 @@ public class LogClient {
     }
 
     /**
+     * 写日志
+     *
+     * @param logClass - 日志类型
+     * @param buffer - 日志Buffer 必须为同一索引
+     */
+    public void bulkLog(Class<?> logClass,List<okio.Buffer> buffer) {
+        logService.writeBulkLog(logClass,buffer);
+    }
+
+    /**
      * 简单日志查询
      *
      * @param tClass 日志对象类型
@@ -70,7 +90,20 @@ public class LogClient {
      * @return
      */
     public <T> List<T> simpleQueryLog(Class<T> tClass,String simpleQuery) {
-        return logService.simpleQueryLog(tClass,tClass.getName().toLowerCase(),simpleQuery);
+        return logService.simpleQueryLog(tClass,logService.getIndex(tClass),simpleQuery);
+    }
+
+    /**
+     * 简单日志查询
+     *
+     * @param tClass 日志对象类型
+     * @param index 索引
+     * @param simpleQuery 简单查询条件
+     * @param <T>
+     * @return
+     */
+    public <T> List<T> simpleQueryLog(Class<T> tClass,String index,String simpleQuery) {
+        return logService.simpleQueryLog(tClass,index,simpleQuery);
     }
 
     /**
@@ -82,7 +115,20 @@ public class LogClient {
      * @return
      */
     public <T> SearchResponse<T> simpleQueryLogSearchResponse(Class<T> tClass, String simpleQuery) {
-        return logService.simpleQueryLogSearchResponse(tClass,tClass.getName().toLowerCase(),simpleQuery);
+        return logService.simpleQueryLogSearchResponse(tClass,logService.getIndex(tClass),simpleQuery);
+    }
+
+    /**
+     * 简单日志查询
+     *
+     * @param tClass 日志对象类型
+     * @param index 索引
+     * @param simpleQuery 简单查询条件
+     * @param <T>
+     * @return
+     */
+    public <T> SearchResponse<T> simpleQueryLogSearchResponse(Class<T> tClass,String index,String simpleQuery) {
+        return logService.simpleQueryLogSearchResponse(tClass,index,simpleQuery);
     }
 
     /**
@@ -94,7 +140,20 @@ public class LogClient {
      * @return
      */
     public <T> List<T> dslQueryLog(Class<T> tClass,String dslQuery) {
-        return logService.dslQueryLog(tClass,tClass.getName().toLowerCase(),dslQuery);
+        return logService.dslQueryLog(tClass,logService.getIndex(tClass),dslQuery);
+    }
+
+    /**
+     * dsl日志查询
+     *
+     * @param tClass 日志对象类型
+     * @param index 索引
+     * @param dslQuery dsl查询内容
+     * @param <T>
+     * @return
+     */
+    public <T> List<T> dslQueryLog(Class<T> tClass,String index,String dslQuery) {
+        return logService.dslQueryLog(tClass,index,dslQuery);
     }
 
     /**
@@ -106,7 +165,20 @@ public class LogClient {
      * @return
      */
     public <T> SearchResponse<T> dslQueryLogSearchResponse(Class<T> tClass,String dslQuery) {
-        return logService.dslQueryLogSearchResponse(tClass,tClass.getName().toLowerCase(),dslQuery);
+        return logService.dslQueryLogSearchResponse(tClass,logService.getIndex(tClass),dslQuery);
+    }
+
+    /**
+     * dsl日志查询
+     *
+     * @param tClass 日志对象类型
+     * @param index 索引
+     * @param dslQuery dsl查询内容
+     * @param <T>
+     * @return
+     */
+    public <T> SearchResponse<T> dslQueryLogSearchResponse(Class<T> tClass,String index,String dslQuery) {
+        return logService.dslQueryLogSearchResponse(tClass,index,dslQuery);
     }
 
     /**
