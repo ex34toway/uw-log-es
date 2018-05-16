@@ -17,14 +17,14 @@ public class LogInterfaceOrder implements Serializable {
     private static final long serialVersionUID = 6795821538602784086L;
 
     public static LogInterfaceOrder init(int interfaceType, long interfaceConfigId,
-                                         long orderId, long parentMchId, long agentMchId,
+                                         long orderId, long saasId, long mchId,
                                          long productId, String interfaceProductId, String interfaceFunction) {
         LogInterfaceOrder logInterfaceOrder = new LogInterfaceOrder();
         logInterfaceOrder.setInterfaceType(interfaceType);
         logInterfaceOrder.setInterfaceConfigId(interfaceConfigId);
         logInterfaceOrder.setOrderId(orderId);
-        logInterfaceOrder.setParentMchId(parentMchId);
-        logInterfaceOrder.setAgentMchId(agentMchId);
+        logInterfaceOrder.setSaasId(saasId);
+        logInterfaceOrder.setMchId(mchId);
         logInterfaceOrder.setProductId(productId);
         logInterfaceOrder.setInterfaceProductId(interfaceProductId);
         logInterfaceOrder.setInterfaceFunction(interfaceFunction);
@@ -67,12 +67,12 @@ public class LogInterfaceOrder implements Serializable {
 	/**
 	 * 运营商ID
 	 */
-	private long parentMchId = -1;
+	private long saasId = -1;
 
 	/**
 	 * 分销商ID
 	 */
-	private long agentMchId = -1;
+	private long mchId = -1;
 
 	/**
 	 * 系统产品类型
@@ -179,37 +179,37 @@ public class LogInterfaceOrder implements Serializable {
 		this.interfaceOrderId = interfaceOrderId;
 	}
 
-	/**
-	 * @return the parentMchId
-	 */
-	public long getParentMchId() {
-		return parentMchId;
-	}
+    /**
+     * @return the saasId
+     */
+    public long getSaasId() {
+        return saasId;
+    }
 
-	/**
-	 * @param parentMchId
-	 *            the parentMchId to set
-	 */
-	public void setParentMchId(long parentMchId) {
-		this.parentMchId = parentMchId;
-	}
+    /**
+     * @param saasId
+     *            the saasId to set
+     */
+    public void setSaasId(long saasId) {
+        this.saasId = saasId;
+    }
 
-	/**
-	 * @return the agentMchId
-	 */
-	public long getAgentMchId() {
-		return agentMchId;
-	}
+    /**
+     * @return the mchId
+     */
+    public long getMchId() {
+        return mchId;
+    }
 
-	/**
-	 * @param agentMchId
-	 *            the agentMchId to set
-	 */
-	public void setAgentMchId(long agentMchId) {
-		this.agentMchId = agentMchId;
-	}
+    /**
+     * @param mchId
+     *            the mchId to set
+     */
+    public void setMchId(long mchId) {
+        this.mchId = mchId;
+    }
 
-	/**
+    /**
 	 * @return the productType
 	 */
 	public int getProductType() {

@@ -16,11 +16,12 @@ import java.io.Serializable;
 public class LogInterface implements Serializable {
     private static final long serialVersionUID = -6488666771783357081L;
 
-    public static LogInterface init(int interfaceType, int interfaceConfigId, long mchId, int productType, long productId, String interfaceProductId, String interfaceFunction) {
+    public static LogInterface init(int interfaceType, int interfaceConfigId, long saasId, int productType, long productId,
+                                    String interfaceProductId, String interfaceFunction) {
 		LogInterface logInterface = new LogInterface();
 		logInterface.setInterfaceType(interfaceType);
 		logInterface.setInterfaceConfigId(interfaceConfigId);
-		logInterface.setMchId(mchId);
+		logInterface.setSaasId(saasId);
 		logInterface.setProductType(productType);
 		logInterface.setProductId(productId);
 		logInterface.setInterfaceProductId(interfaceProductId);
@@ -54,7 +55,7 @@ public class LogInterface implements Serializable {
 	/**
 	 * 运营商ID
 	 */
-	private long mchId = -1;
+	private long saasId = -1;
 
 	/**
 	 * 系统产品类型
@@ -131,22 +132,23 @@ public class LogInterface implements Serializable {
 		this.interfaceConfigId = interfaceConfigId;
 	}
 
-	/**
-	 * @return the mchId
-	 */
-	public long getMchId() {
-		return mchId;
-	}
+    /**
+     * @return the mchId
+     * @return
+     */
+    public long getSaasId() {
+        return saasId;
+    }
 
-	/**
-	 * @param mchId
-	 *            the mchId to set
-	 */
-	public void setMchId(long mchId) {
-		this.mchId = mchId;
-	}
+    /**
+     * @param saasId
+     *            the saasId to set
+     */
+    public void setSaasId(long saasId) {
+        this.saasId = saasId;
+    }
 
-	/**
+    /**
 	 * @return the productType
 	 */
 	public int getProductType() {
