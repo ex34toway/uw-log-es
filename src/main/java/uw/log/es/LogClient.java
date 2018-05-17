@@ -186,11 +186,13 @@ public class LogClient {
      *
      * @param tClass 日志对象类型
      * @param sql sql查询,需要 es 安装 es-sql 插件
+     * @param startIndex 开始位置
+     * @param pageSize 每页记录数
      * @param <T>
      * @return
      */
-    public <T> List<T> sqlQueryLog(Class<T> tClass,String sql) {
-        return logService.sqlQueryLog(tClass,sql);
+    public <T> EDataList<T> sqlQueryLog(Class<T> tClass,String sql,int startIndex, int pageSize) {
+        return logService.sqlQueryLog(tClass,sql,startIndex,pageSize);
     }
 
     /**

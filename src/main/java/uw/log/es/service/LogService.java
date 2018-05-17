@@ -15,6 +15,7 @@ import uw.httpclient.http.HttpInterface;
 import uw.httpclient.http.ObjectMapper;
 import uw.httpclient.json.JsonInterfaceHelper;
 import uw.httpclient.util.BufferRequestBody;
+import uw.log.es.EDataList;
 import uw.log.es.LogClientProperties;
 import uw.log.es.vo.SearchResponse;
 
@@ -110,6 +111,40 @@ public class LogService {
             }
         }
         return null;
+    }
+
+    /**
+     * 将查询结果映射成EDataList
+     *
+     * @param resp
+     * @param tClass
+     * @param <T>
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    private <T> EDataList<T> mapQueryResponseToEDataList(String resp,Class<T> tClass,int startIndex,int pageSize) {
+        if (StringUtils.isNotBlank(resp)) {
+            SearchResponse<T> response = null;
+            try {
+                response = ObjectMapper.DEFAULT_JSON_MAPPER.parse(resp,
+                        ObjectMapper.DEFAULT_JSON_MAPPER
+                                .constructParametricType(SearchResponse.class, tClass));
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+            if (response != null) {
+                SearchResponse.HitsResponse<T> hitsResponse = response.getHisResponse();
+                List<SearchResponse.Hits<T>> hitsList = hitsResponse.getHits();
+                if (!hitsList.isEmpty()) {
+                    List<T> dataList = Lists.newArrayList();
+                    for (SearchResponse.Hits<T> hits : hitsList) {
+                        dataList.add(hits.getSource());
+                    }
+                    return new EDataList<>(dataList,startIndex,pageSize,hitsResponse.getTotal());
+                }
+            }
+        }
+        return new EDataList<>(null,startIndex,pageSize,0);
     }
 
     /**
@@ -438,7 +473,7 @@ public class LogService {
      * @param sql sql
      * @return
      */
-    public <T> List<T> sqlQueryLog(Class<T> tClass,String sql) {
+    public <T> EDataList<T> sqlQueryLog(Class<T> tClass, String sql, int startIndex, int pageSize) {
         StringBuilder urlBuilder = new StringBuilder(clusters);
         urlBuilder.append("/").append("_sql?_type=").append(INDEX_TYPE);
         String resp = null;
@@ -452,7 +487,7 @@ public class LogService {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        return mapQueryResponseToList(resp,tClass);
+        return mapQueryResponseToEDataList(resp,tClass,startIndex,pageSize);
     }
 
     /**

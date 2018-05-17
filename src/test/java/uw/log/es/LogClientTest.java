@@ -27,7 +27,7 @@ public class LogClientTest {
     public static void setUp() {
         LogClientProperties logClientProperties = new LogClientProperties();
         LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
-        esConfig.setClusters("http://localhost:9200");
+        esConfig.setClusters("http://192.168.88.16:9200");
         logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));
         logClient.regLogObject(LogInterface.class);
@@ -42,7 +42,7 @@ public class LogClientTest {
             LogInterface logInterface = new LogInterface();
             logInterface.setInterfaceType(1);
             logInterface.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-            logInterface.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+            logInterface.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
             logInterface.setProductType(10);
             logInterface.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
             logInterface.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
@@ -62,7 +62,7 @@ public class LogClientTest {
         LogInterface logInterface = new LogInterface();
         logInterface.setInterfaceType(1);
         logInterface.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface.setProductType(10);
         logInterface.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
@@ -79,7 +79,7 @@ public class LogClientTest {
         LogInterface logInterface = new LogInterface();
         logInterface.setInterfaceType(1);
         logInterface.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface.setProductType(10);
         logInterface.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
@@ -101,7 +101,7 @@ public class LogClientTest {
         LogInterface logInterface1 = new LogInterface();
         logInterface1.setInterfaceType(1);
         logInterface1.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface1.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface1.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface1.setProductType(10);
         logInterface1.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface1.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
@@ -118,7 +118,7 @@ public class LogClientTest {
         LogInterface logInterface2 = new LogInterface();
         logInterface2.setInterfaceType(1);
         logInterface2.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface2.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface2.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface2.setProductType(10);
         logInterface2.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface2.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
@@ -141,7 +141,7 @@ public class LogClientTest {
         LogInterface logInterface1 = new LogInterface();
         logInterface1.setInterfaceType(1);
         logInterface1.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface1.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface1.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface1.setProductType(10);
         logInterface1.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface1.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
@@ -155,7 +155,7 @@ public class LogClientTest {
         LogInterface logInterface2 = new LogInterface();
         logInterface2.setInterfaceType(1);
         logInterface2.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface2.setMchId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
+        logInterface2.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface2.setProductType(10);
         logInterface2.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
         logInterface2.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
@@ -200,11 +200,17 @@ public class LogClientTest {
         dataList.size();
     }
 
-
     @Test
     public void testQueryLogBySql() {
         SearchResponse<LogInterface> response = logClient.sqlQueryLogSearchResponse(LogInterface.class,
                 "select * from "+logClient.getIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
         response.getHisResponse();
+    }
+
+    @Test
+    public void testQueryLogEDataListBySql() {
+        EDataList<LogInterface> dataList = logClient.sqlQueryLog(LogInterface.class,
+                "select * from uw.auth.server.util.vo.msc_action_log where responseDate > 1524666600000 limit 1,3 ",1,3);
+        dataList.size();
     }
 }
