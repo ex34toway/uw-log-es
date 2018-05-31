@@ -5,7 +5,7 @@
     <groupId>com.umtone</groupId>
     <artifactId>uw-log-es</artifactId>
     <packaging>jar</packaging>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -85,28 +85,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                    <!-- Javadoc -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                                <configuration>
-                                    <encoding>UTF-8</encoding>
-                                </configuration>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <encoding>UTF-8</encoding>
-                            <charset>UTF-8</charset>
-                            <docencoding>UTF-8</docencoding>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
