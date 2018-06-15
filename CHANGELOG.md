@@ -3,6 +3,7 @@
 # uw-log-es
 
 #### 更新日志
+    0.1.6 May NPE Bug FIX
     0.1.5 大佬说不截断
     0.1.4 完善Json序列化器,默认截取前 3000 byte
     0.1.3 增Json序列化器

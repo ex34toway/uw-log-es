@@ -123,6 +123,7 @@ public class LogService {
      */
     @SuppressWarnings("unchecked")
     private <T> EDataList<T> mapQueryResponseToEDataList(String resp,Class<T> tClass,int startIndex,int pageSize) {
+        List<T> dataList = Lists.newArrayList();
         if (StringUtils.isNotBlank(resp)) {
             SearchResponse<T> response = null;
             try {
@@ -136,7 +137,6 @@ public class LogService {
                 SearchResponse.HitsResponse<T> hitsResponse = response.getHisResponse();
                 List<SearchResponse.Hits<T>> hitsList = hitsResponse.getHits();
                 if (!hitsList.isEmpty()) {
-                    List<T> dataList = Lists.newArrayList();
                     for (SearchResponse.Hits<T> hits : hitsList) {
                         dataList.add(hits.getSource());
                     }
@@ -144,7 +144,7 @@ public class LogService {
                 }
             }
         }
-        return new EDataList<>(null,startIndex,pageSize,0);
+        return new EDataList<>(dataList,startIndex,pageSize,0);
     }
 
     /**
