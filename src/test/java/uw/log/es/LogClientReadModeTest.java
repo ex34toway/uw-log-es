@@ -29,7 +29,7 @@ public class LogClientReadModeTest {
         LogClientProperties logClientProperties = new LogClientProperties();
         LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
         esConfig.setClusters("http://192.168.88.16:9200");
-        esConfig.setMode(1);
+        esConfig.setMode(LogClientProperties.LogMode.READ_ONLY);
         logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));
         logClient.regLogObject(LogInterface.class);
@@ -145,7 +145,7 @@ public class LogClientReadModeTest {
     @Test
     public void testQueryLogBySql() {
         SearchResponse<LogInterface> response = logClient.sqlQueryLogSearchResponse(LogInterface.class,
-                "select * from "+logClient.getIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
+                "select * from "+logClient.getRawIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
         response.getHisResponse();
     }
 

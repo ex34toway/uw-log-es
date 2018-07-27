@@ -8,6 +8,7 @@ import okhttp3.Credentials;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uw.httpclient.http.HttpConfig;
@@ -16,6 +17,7 @@ import uw.httpclient.http.HttpInterface;
 import uw.httpclient.http.ObjectMapper;
 import uw.httpclient.json.JsonInterfaceHelper;
 import uw.httpclient.util.BufferRequestBody;
+import uw.log.es.util.IndexConfigVo;
 import uw.log.es.vo.ESDataList;
 import uw.log.es.LogClientProperties;
 import uw.log.es.vo.SearchResponse;
@@ -23,6 +25,7 @@ import uw.log.es.vo.SearchResponse;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,16 +44,6 @@ public class LogService {
     private static final Logger logger = LoggerFactory.getLogger(LogService.class);
 
     private static final String INDEX_TYPE = "logs";
-
-    /**
-     * 读模式
-     */
-    private static final int READ_MODE = 1;
-
-    /**
-     * 读写模式
-     */
-    private static final int READ_WRITE_MODE = 2;
 
     /**
      * 日志编码
@@ -100,7 +93,7 @@ public class LogService {
     /**
      * 模式
      */
-    private int mode;
+    private LogClientProperties.LogMode mode;
 
     /**
      * 刷新Bucket时间毫秒数
@@ -140,7 +133,7 @@ public class LogService {
     /**
      * 注册Mapping,<Class<?>,String>
      */
-    private final Map<Class<?>,String> regMap = Maps.newHashMap();
+    private final Map<Class<?>,IndexConfigVo> regMap = Maps.newHashMap();
 
     public LogService(final LogClientProperties logClientProperties) {
         this.clusters = logClientProperties.getEs().getClusters();
@@ -162,7 +155,7 @@ public class LogService {
         this.maxBatchThreads = logClientProperties.getEs().getMaxBatchThreads();
         this.mode = logClientProperties.getEs().getMode();
         // 如果
-        if (mode == READ_WRITE_MODE) {
+        if (mode == LogClientProperties.LogMode.READ_WRITE) {
             this.needLog = true;
             batchExecutor = new ThreadPoolExecutor(1, maxBatchThreads, 30, TimeUnit.SECONDS, new SynchronousQueue<>(),
                     new ThreadFactoryBuilder().setDaemon(true).setNameFormat("log-es-batch-%d").build(), new RejectedExecutionHandler() {
@@ -271,11 +264,12 @@ public class LogService {
     }
 
     /**
-     * 注册日志类型
+     * 根据类名建立索引名称
      *
      * @param logClass
+     * @return
      */
-    public void regLogObject(Class<?> logClass) {
+    private static String buildIndexName(Class<?> logClass) {
         String className = logClass.getName();
         int lastIndex = className.lastIndexOf(".");
         String indexName = "";
@@ -289,7 +283,19 @@ public class LogService {
         } else {
             indexName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
         }
-        regMap.put(logClass,indexName);
+        return indexName;
+    }
+
+    /**
+     * 注册日志类型
+     *
+     * @param logClass
+     */
+    public void regLogObject(Class<?> logClass,String index,String indexPattern) {
+        String rawIndex = index == null ? buildIndexName(logClass) : index;
+        FastDateFormat dateFormat = indexPattern == null ? null : FastDateFormat.getInstance(indexPattern, (TimeZone) null);
+        IndexConfigVo indexConfigVo = new IndexConfigVo(rawIndex, dateFormat);
+        regMap.put(logClass, indexConfigVo);
     }
 
     /**
@@ -297,8 +303,29 @@ public class LogService {
      *
      * @param logClass
      */
-    public String getIndex(Class<?> logClass) {
-        return regMap.get(logClass);
+    public String getRawIndex(Class<?> logClass) {
+        IndexConfigVo configVo = regMap.get(logClass);
+        if (configVo == null) {
+            return null;
+        }
+        return configVo.getIndex();
+    }
+
+    /**
+     *
+     * @param logClass
+     * @return
+     */
+    private String getIndex(Class<?> logClass) {
+        IndexConfigVo configVo = regMap.get(logClass);
+        if (configVo == null) {
+            return null;
+        }
+        FastDateFormat indexPattern = configVo.getIndexPattern();
+        if (indexPattern == null) {
+            return configVo.getIndex();
+        }
+        return configVo.getIndex() + indexPattern.format(System.currentTimeMillis());
     }
 
     /**
@@ -310,7 +337,7 @@ public class LogService {
         if (!needLog) {
             return;
         }
-        String index = regMap.get(source.getClass());
+        String index = getIndex(source.getClass());
         if (StringUtils.isBlank(index)) {
             return;
         }
@@ -350,7 +377,7 @@ public class LogService {
         if (!needLog) {
             return;
         }
-        String index = regMap.get(sourceList.get(0).getClass());
+        String index = getIndex(sourceList.get(0).getClass());
         if (StringUtils.isBlank(index)) {
             return;
         }

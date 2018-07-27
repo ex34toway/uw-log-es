@@ -54,9 +54,9 @@ public class LogClientProperties {
         private String esBulk = "/_bulk";
 
         /**
-         * 1: 读模式; 2: 读写模式[会有后台线程开销]
+         * READ_ONLY: 只读模式; READ_WRITE: 读写模式[会有后台线程开销]
          */
-        private int mode = 1;
+        private LogMode mode = LogMode.READ_WRITE;
 
         /**
          * 刷新Bucket时间毫秒数
@@ -129,11 +129,11 @@ public class LogClientProperties {
             this.esBulk = esBulk;
         }
 
-        public int getMode() {
+        public LogMode getMode() {
             return mode;
         }
 
-        public void setMode(int mode) {
+        public void setMode(LogMode mode) {
             this.mode = mode;
         }
 
@@ -160,6 +160,10 @@ public class LogClientProperties {
         public void setMaxBatchThreads(int maxBatchThreads) {
             this.maxBatchThreads = maxBatchThreads;
         }
+    }
+
+    public enum LogMode {
+        READ_ONLY, READ_WRITE
     }
 
     public EsConfig getEs() {

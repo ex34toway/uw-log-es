@@ -25,14 +25,14 @@ public class LogClientWriteModeTest {
         LogClientProperties logClientProperties = new LogClientProperties();
         LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
         esConfig.setClusters("http://localhost:9200");
-        esConfig.setMode(2);
+        esConfig.setMode(LogClientProperties.LogMode.READ_WRITE);
         esConfig.setMaxFlushInMilliseconds(1000);
         esConfig.setMaxBytesOfBatch(5*1024*1024);
         esConfig.setMaxBatchThreads(5);
         logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));
-        logClient.regLogObject(LogInterface.class);
-        logClient.regLogObject(LogInterfaceOrder.class);
+        logClient.regLogObject(LogInterface.class,null,"_yyyy-MM");
+        logClient.regLogObject(LogInterfaceOrder.class,null,"_yyyy-MM");
     }
 
     @Test

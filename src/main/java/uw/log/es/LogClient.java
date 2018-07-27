@@ -27,10 +27,31 @@ public class LogClient {
     /**
      * 注册日志类型
      *
-     * @param logClass
+     * @param logClass 日志类
      */
     public void regLogObject(Class<?> logClass) {
-        logService.regLogObject(logClass);
+        logService.regLogObject(logClass,null,null);
+    }
+
+    /**
+     * 注册日志类型
+     *
+     * @param logClass 日志类
+     * @param index    自定义索引名称
+     */
+    public void regLogObject(Class<?> logClass,String index) {
+        logService.regLogObject(logClass,index,null);
+    }
+
+    /**
+     * 注册日志类型
+     *
+     * @param logClass 日志类
+     * @param index    自定义索引名称
+     * @param indexPattern 索引模式
+     */
+    public void regLogObject(Class<?> logClass,String index,String indexPattern) {
+        logService.regLogObject(logClass,index,indexPattern);
     }
 
     /**
@@ -39,8 +60,8 @@ public class LogClient {
      * @param logClass
      * @return
      */
-    public String getIndex(Class<?> logClass) {
-        return logService.getIndex(logClass);
+    public String getRawIndex(Class<?> logClass) {
+        return logService.getRawIndex(logClass);
     }
 
     /**
@@ -78,7 +99,7 @@ public class LogClient {
      * @return
      */
     public <T> List<T> simpleQueryLog(Class<T> tClass,String simpleQuery) {
-        return logService.simpleQueryLog(tClass,logService.getIndex(tClass),simpleQuery);
+        return logService.simpleQueryLog(tClass,logService.getRawIndex(tClass),simpleQuery);
     }
 
     /**
@@ -103,7 +124,7 @@ public class LogClient {
      * @return
      */
     public <T> SearchResponse<T> simpleQueryLogSearchResponse(Class<T> tClass, String simpleQuery) {
-        return logService.simpleQueryLogSearchResponse(tClass,logService.getIndex(tClass),simpleQuery);
+        return logService.simpleQueryLogSearchResponse(tClass,logService.getRawIndex(tClass),simpleQuery);
     }
 
     /**
@@ -128,7 +149,7 @@ public class LogClient {
      * @return
      */
     public <T> List<T> dslQueryLog(Class<T> tClass,String dslQuery) {
-        return logService.dslQueryLog(tClass,logService.getIndex(tClass),dslQuery);
+        return logService.dslQueryLog(tClass,logService.getRawIndex(tClass),dslQuery);
     }
 
     /**
@@ -153,7 +174,7 @@ public class LogClient {
      * @return
      */
     public <T> SearchResponse<T> dslQueryLogSearchResponse(Class<T> tClass,String dslQuery) {
-        return logService.dslQueryLogSearchResponse(tClass,logService.getIndex(tClass),dslQuery);
+        return logService.dslQueryLogSearchResponse(tClass,logService.getRawIndex(tClass),dslQuery);
     }
 
     /**
