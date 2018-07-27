@@ -61,12 +61,12 @@ public class LogClientProperties {
         /**
          * 刷新Bucket时间毫秒数
          */
-        private long maxFlushInMilliseconds = 1000;
+        private long maxFlushInMilliseconds = 10000;
 
         /**
          * 允许最大Bucket 字节数。
          */
-        private long minBytesOfBatch = 2048;
+        private long maxBytesOfBatch = 5*1024*1024;
 
         /**
          * 最大批量线程数。
@@ -145,12 +145,12 @@ public class LogClientProperties {
             this.maxFlushInMilliseconds = maxFlushInMilliseconds;
         }
 
-        public long getMinBytesOfBatch() {
-            return minBytesOfBatch;
+        public long getMaxBytesOfBatch() {
+            return maxBytesOfBatch;
         }
 
-        public void setMinBytesOfBatch(long minBytesOfBatch) {
-            this.minBytesOfBatch = minBytesOfBatch;
+        public void setMaxBytesOfBatch(long maxBytesOfBatch) {
+            this.maxBytesOfBatch = maxBytesOfBatch;
         }
 
         public int getMaxBatchThreads() {

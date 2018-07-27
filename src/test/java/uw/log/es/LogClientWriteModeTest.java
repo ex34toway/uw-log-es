@@ -27,7 +27,7 @@ public class LogClientWriteModeTest {
         esConfig.setClusters("http://localhost:9200");
         esConfig.setMode(2);
         esConfig.setMaxFlushInMilliseconds(1000);
-        esConfig.setMinBytesOfBatch(5*1024*1024);
+        esConfig.setMaxBytesOfBatch(5*1024*1024);
         esConfig.setMaxBatchThreads(5);
         logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));

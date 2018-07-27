@@ -158,7 +158,7 @@ public class LogService {
                 .build());
         this.esBulk = logClientProperties.getEs().getEsBulk();
         this.maxFlushInMilliseconds = logClientProperties.getEs().getMaxFlushInMilliseconds();
-        this.minBytesOfBatch = logClientProperties.getEs().getMinBytesOfBatch();
+        this.minBytesOfBatch = logClientProperties.getEs().getMaxBytesOfBatch();
         this.maxBatchThreads = logClientProperties.getEs().getMaxBatchThreads();
         this.mode = logClientProperties.getEs().getMode();
         // 如果
@@ -415,9 +415,9 @@ public class LogService {
      */
     public void destroyLog() {
         if (needLog) {
-            processLogBuffer(true);
             daemonExporter.readyDestroy();
             batchExecutor.shutdown();
+            processLogBuffer(true);
         }
     }
 
