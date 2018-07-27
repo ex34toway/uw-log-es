@@ -15,7 +15,7 @@ import uw.httpclient.http.HttpInterface;
 import uw.httpclient.http.ObjectMapper;
 import uw.httpclient.json.JsonInterfaceHelper;
 import uw.httpclient.util.BufferRequestBody;
-import uw.log.es.EDataList;
+import uw.log.es.vo.ESDataList;
 import uw.log.es.LogClientProperties;
 import uw.log.es.vo.SearchResponse;
 
@@ -122,7 +122,7 @@ public class LogService {
      * @return
      */
     @SuppressWarnings("unchecked")
-    private <T> EDataList<T> mapQueryResponseToEDataList(String resp,Class<T> tClass,int startIndex,int pageSize) {
+    private <T> ESDataList<T> mapQueryResponseToEDataList(String resp, Class<T> tClass, int startIndex, int pageSize) {
         List<T> dataList = Lists.newArrayList();
         if (StringUtils.isNotBlank(resp)) {
             SearchResponse<T> response = null;
@@ -140,11 +140,11 @@ public class LogService {
                     for (SearchResponse.Hits<T> hits : hitsList) {
                         dataList.add(hits.getSource());
                     }
-                    return new EDataList<>(dataList,startIndex,pageSize,hitsResponse.getTotal());
+                    return new ESDataList<>(dataList,startIndex,pageSize,hitsResponse.getTotal());
                 }
             }
         }
-        return new EDataList<>(dataList,startIndex,pageSize,0);
+        return new ESDataList<>(dataList,startIndex,pageSize,0);
     }
 
     /**
@@ -473,7 +473,7 @@ public class LogService {
      * @param sql sql
      * @return
      */
-    public <T> EDataList<T> sqlQueryLog(Class<T> tClass, String sql, int startIndex, int pageSize) {
+    public <T> ESDataList<T> sqlQueryLog(Class<T> tClass, String sql, int startIndex, int pageSize) {
         StringBuilder urlBuilder = new StringBuilder(clusters);
         urlBuilder.append("/").append("_sql?_type=").append(INDEX_TYPE);
         String resp = null;

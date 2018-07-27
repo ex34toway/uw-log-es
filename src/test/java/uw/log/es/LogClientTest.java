@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import uw.httpclient.http.ObjectMapper;
 import uw.log.es.service.LogService;
+import uw.log.es.vo.ESDataList;
 import uw.log.es.vo.LogInterface;
 import uw.log.es.vo.LogInterfaceOrder;
 import uw.log.es.vo.SearchResponse;
@@ -209,7 +210,7 @@ public class LogClientTest {
 
     @Test
     public void testQueryLogEDataListBySql() {
-        EDataList<LogInterface> dataList = logClient.sqlQueryLog(LogInterface.class,
+        ESDataList<LogInterface> dataList = logClient.sqlQueryLog(LogInterface.class,
                 "select * from uw.auth.server.util.vo.msc_action_log where responseDate > 1524666600000 limit 1,3 ",1,3);
         dataList.size();
     }

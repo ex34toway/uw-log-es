@@ -3,6 +3,7 @@ package uw.log.es;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uw.log.es.service.LogService;
+import uw.log.es.vo.ESDataList;
 import uw.log.es.vo.SearchResponse;
 
 import java.util.List;
@@ -191,7 +192,7 @@ public class LogClient {
      * @param <T>
      * @return
      */
-    public <T> EDataList<T> sqlQueryLog(Class<T> tClass,String sql,int startIndex, int pageSize) {
+    public <T> ESDataList<T> sqlQueryLog(Class<T> tClass, String sql, int startIndex, int pageSize) {
         return logService.sqlQueryLog(tClass,sql,startIndex,pageSize);
     }
 

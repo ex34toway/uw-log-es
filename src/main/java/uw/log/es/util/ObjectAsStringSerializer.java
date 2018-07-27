@@ -1,4 +1,4 @@
-package uw.log.es.ser;
+package uw.log.es.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
