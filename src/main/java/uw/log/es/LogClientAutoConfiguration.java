@@ -17,6 +17,8 @@ import javax.annotation.PreDestroy;
 @EnableConfigurationProperties({LogClientProperties.class})
 public class LogClientAutoConfiguration {
 
+    private LogClient logClient;
+
     /**
      * 日志接口服务客户端
      *
@@ -25,11 +27,12 @@ public class LogClientAutoConfiguration {
      */
     @Bean
     public LogClient logClient(final LogClientProperties logClientProperties) {
-        return new LogClient(new LogService(logClientProperties));
+        logClient = new LogClient(new LogService(logClientProperties));
+        return logClient;
     }
 
     @PreDestroy
-    public void destroy(final LogClient logClient) {
+    public void destroy() {
         logClient.destroyLog();
     }
 }
