@@ -53,33 +53,20 @@ public class LogClient {
     }
 
     /**
-     * 写日志
-     *
-     * @param logClass - 日志类型
-     * @param buffer - 日志Buffer
-     */
-    public void log(Class<?> logClass,okio.Buffer buffer) {
-        logService.writeLog(logClass,buffer);
-    }
-
-    /**
      * 批量写日志
      *
      * @param sourceList 日志对象列表
      * @param <T>
      */
-    public <T> void bulkLog(List<T> sourceList){
+    public <T> void bulkLog(List<T> sourceList) {
         logService.writeBulkLog(sourceList);
     }
 
     /**
-     * 写日志
-     *
-     * @param logClass - 日志类型
-     * @param buffer - 日志Buffer 必须为同一索引
+     * 关闭写日志系统
      */
-    public void bulkLog(Class<?> logClass,List<okio.Buffer> buffer) {
-        logService.writeBulkLog(logClass,buffer);
+    void destroyLog() {
+        logService.destroyLog();
     }
 
     /**

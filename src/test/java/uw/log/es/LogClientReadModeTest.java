@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @author liliang
  * @since 2018-04-25
  */
-public class LogClientTest {
+public class LogClientReadModeTest {
 
     private static LogClient logClient;
 
@@ -29,6 +29,7 @@ public class LogClientTest {
         LogClientProperties logClientProperties = new LogClientProperties();
         LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
         esConfig.setClusters("http://192.168.88.16:9200");
+        esConfig.setMode(1);
         logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties));
         logClient.regLogObject(LogInterface.class);
@@ -73,66 +74,6 @@ public class LogClientTest {
         logInterface.setResponseDate(new Date());
         logInterface.setResponseBody("吃了");
         logClient.log(logInterface);
-    }
-
-    @Test
-    public void testLogBuffer() throws Exception {
-        LogInterface logInterface = new LogInterface();
-        logInterface.setInterfaceType(1);
-        logInterface.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface.setProductType(10);
-        logInterface.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
-        logInterface.setInterfaceFunction("zwy.common.log.client.logInterface");
-        logInterface.setRequestDate(new Date());
-        logInterface.setRequestBody("你吃饭了吗?");
-        logInterface.setResponseDate(new Date());
-        logInterface.setResponseBody("吃了");
-        okio.Buffer buffer = new okio.Buffer();
-        ObjectMapper.DEFAULT_JSON_MAPPER.write(buffer.outputStream(),logInterface);
-        logClient.log(LogInterface.class,buffer);
-    }
-
-    @Test
-    public void testWriteBulkLogBuffer() throws Exception {
-        List<okio.Buffer> bufferList = Lists.newArrayList();
-        okio.Buffer buffer1 = new okio.Buffer();
-        List<LogInterface> dataList = Lists.newArrayList();
-        LogInterface logInterface1 = new LogInterface();
-        logInterface1.setInterfaceType(1);
-        logInterface1.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface1.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface1.setProductType(10);
-        logInterface1.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface1.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
-        logInterface1.setInterfaceFunction("zwy.common.log.client.logInterface");
-        logInterface1.setRequestDate(new Date());
-        logInterface1.setRequestBody("你吃饭了吗?");
-        logInterface1.setResponseDate(new Date());
-        logInterface1.setResponseBody("吃了");
-        dataList.add(logInterface1);
-        ObjectMapper.DEFAULT_JSON_MAPPER.write(buffer1.outputStream(),logInterface1);
-        bufferList.add(buffer1);
-
-        okio.Buffer buffer2 = new okio.Buffer();
-        LogInterface logInterface2 = new LogInterface();
-        logInterface2.setInterfaceType(1);
-        logInterface2.setInterfaceConfigId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface2.setSaasId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface2.setProductType(10);
-        logInterface2.setProductId(Long.parseLong(RandomStringUtils.randomNumeric(6)));
-        logInterface2.setInterfaceProductId(RandomStringUtils.randomNumeric(11));
-        logInterface2.setInterfaceFunction("zwy.common.log.client.logInterface");
-        logInterface2.setRequestDate(new Date());
-        logInterface2.setRequestBody("你吃饭了吗?");
-        logInterface2.setResponseDate(new Date());
-        logInterface2.setResponseBody("吃了");
-        dataList.add(logInterface2);
-        ObjectMapper.DEFAULT_JSON_MAPPER.write(buffer2.outputStream(),logInterface2);
-        bufferList.add(buffer2);
-
-        logClient.bulkLog(LogInterface.class,bufferList);
     }
 
     @Test

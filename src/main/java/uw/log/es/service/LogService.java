@@ -3,6 +3,7 @@ package uw.log.es.service;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import okhttp3.Credentials;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -19,8 +20,15 @@ import uw.log.es.vo.ESDataList;
 import uw.log.es.LogClientProperties;
 import uw.log.es.vo.SearchResponse;
 
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 日志服务
@@ -34,6 +42,29 @@ public class LogService {
 
     private static final String INDEX_TYPE = "logs";
 
+    /**
+     * 读模式
+     */
+    private static final int READ_MODE = 1;
+
+    /**
+     * 读写模式
+     */
+    private static final int READ_WRITE_MODE = 2;
+
+    /**
+     * 日志编码
+     */
+    private static final Charset LOG_CHARSET = Charset.forName("UTF-8");
+
+    /**
+     * 换行符字节
+     */
+    public static final byte[] LINE_SEPARATOR_BYTES = System.getProperty("line.separator").getBytes(LOG_CHARSET);
+
+    /**
+     * httpInterface
+     */
     private final HttpInterface httpInterface;
 
     /**
@@ -62,22 +93,91 @@ public class LogService {
     private final boolean needBasicAuth;
 
     /**
+     * Elasticsearch bulk api 地址
+     */
+    private String esBulk;
+
+    /**
+     * 模式
+     */
+    private int mode;
+
+    /**
+     * 刷新Bucket时间毫秒数
+     */
+    private long maxFlushInMilliseconds;
+
+    /**
+     * 允许最大Bucket 字节数。
+     */
+    private long minBytesOfBatch;
+
+    /**
+     * 最大批量线程数。
+     */
+    private int maxBatchThreads;
+
+    /**
+     * buffer
+     */
+    private okio.Buffer buffer = new okio.Buffer();
+
+    /**
+     * 读写锁
+     */
+    private final Lock batchLock = new ReentrantLock();
+
+    /**
+     * 后台线程
+     */
+    private ElasticsearchDaemonExporter daemonExporter;
+
+    /**
+     * 后台批量线程池。
+     */
+    private ThreadPoolExecutor batchExecutor;
+
+    /**
      * 注册Mapping,<Class<?>,String>
      */
     private final Map<Class<?>,String> regMap = Maps.newHashMap();
 
     public LogService(final LogClientProperties logClientProperties) {
+        this.clusters = logClientProperties.getEs().getClusters();
+        if(StringUtils.isBlank(this.clusters)) {
+            throw new RuntimeException("ES clusters must config");
+        }
+        this.username = logClientProperties.getEs().getUsername();
+        this.password = logClientProperties.getEs().getPassword();
+        this.needBasicAuth = StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password);
         this.httpInterface = new JsonInterfaceHelper(new HttpConfig.Builder()
                 .retryOnConnectionFailure(true)
                 .connectTimeout(logClientProperties.getEs().getConnectTimeout())
                 .readTimeout(logClientProperties.getEs().getReadTimeout())
                 .writeTimeout(logClientProperties.getEs().getWriteTimeout())
                 .build());
-        this.clusters = logClientProperties.getEs().getClusters();
-        this.username = logClientProperties.getEs().getUsername();
-        this.password = logClientProperties.getEs().getPassword();
-        this.needLog = StringUtils.isNotBlank(this.clusters);
-        this.needBasicAuth = StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password);
+        this.esBulk = logClientProperties.getEs().getEsBulk();
+        this.maxFlushInMilliseconds = logClientProperties.getEs().getMaxFlushInMilliseconds();
+        this.minBytesOfBatch = logClientProperties.getEs().getMinBytesOfBatch();
+        this.maxBatchThreads = logClientProperties.getEs().getMaxBatchThreads();
+        this.mode = logClientProperties.getEs().getMode();
+        // 如果
+        if (mode == READ_WRITE_MODE) {
+            this.needLog = true;
+            batchExecutor = new ThreadPoolExecutor(1, maxBatchThreads, 30, TimeUnit.SECONDS, new SynchronousQueue<>(),
+                    new ThreadFactoryBuilder().setDaemon(true).setNameFormat("log-es-batch-%d").build(), new RejectedExecutionHandler() {
+                @Override
+                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                    logger.error("log es Batch Task " + r.toString() + " rejected from " + executor.toString());
+                }
+            });
+
+            daemonExporter = new ElasticsearchDaemonExporter();
+            daemonExporter.init();
+            daemonExporter.start();
+        } else {
+            this.needLog = false;
+        }
     }
 
     /**
@@ -207,61 +307,33 @@ public class LogService {
      * @param source 日志对象
      */
     public void writeLog(Object source) {
-        if(!needLog) {
+        if (!needLog) {
             return;
         }
         String index = regMap.get(source.getClass());
         if (StringUtils.isBlank(index)) {
             return;
         }
-        StringBuilder urlBuilder = new StringBuilder(200);
-        urlBuilder.append(clusters)
-                .append("/").append(index).append("/")
-                .append(INDEX_TYPE);
-        String resp = null;
+        okio.Buffer okb = new okio.Buffer();
+        okb.writeUtf8("{\"index\":{\"_index\":\"")
+                .writeUtf8(index)
+                .writeUtf8("\",\"_type\":\"")
+                .writeUtf8(INDEX_TYPE)
+                .writeUtf8("\"}}");
+        okb.write(LINE_SEPARATOR_BYTES);
         try {
-            resp = ObjectMapper.DEFAULT_JSON_MAPPER.toString(source);
+            ObjectMapper.DEFAULT_JSON_MAPPER.write(okb.outputStream(), source);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+        okb.write(LINE_SEPARATOR_BYTES);
+        batchLock.lock();
         try {
-            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
-            if(needBasicAuth){
-                requestBuilder.header("Authorization", Credentials.basic(username, password));
-            }
-            httpInterface.requestForObject(requestBuilder.post(RequestBody.create(HttpHelper.JSON_UTF8, resp)).build(), String.class);
-        } catch (Exception e) {
-            logger.error(e.getMessage() + ",log: " + resp, e);
-        }
-    }
-
-    /**
-     * 写日志
-     *
-     * @param logClass - 日志类型
-     * @param buffer - 日志Buffer
-     */
-    public void writeLog(Class<?> logClass,okio.Buffer buffer) {
-        if(!needLog) {
-            return;
-        }
-        String index = regMap.get(logClass);
-        if (StringUtils.isBlank(index)) {
-            return;
-        }
-        StringBuilder urlBuilder = new StringBuilder(200);
-        urlBuilder.append(clusters)
-                .append("/").append(index).append("/")
-                .append(INDEX_TYPE);
-        try {
-            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
-            if(needBasicAuth){
-                requestBuilder.header("Authorization", Credentials.basic(username, password));
-            }
-            httpInterface.requestForObject(requestBuilder.post(BufferRequestBody.create(HttpHelper.JSON_UTF8, buffer)).build(),
-                    String.class);
+            buffer.writeAll(okb);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            batchLock.unlock();
         }
     }
 
@@ -275,82 +347,77 @@ public class LogService {
         if (sourceList == null || sourceList.isEmpty()) {
             return;
         }
-        if(!needLog) {
+        if (!needLog) {
             return;
         }
         String index = regMap.get(sourceList.get(0).getClass());
         if (StringUtils.isBlank(index)) {
             return;
         }
-        StringBuilder urlBuilder = new StringBuilder(50);
-        urlBuilder.append(clusters)
-                .append("/").append("_bulk");
-        okio.Buffer okBuffer = new okio.Buffer();
+        okio.Buffer okb = new okio.Buffer();
+        for (T source : sourceList) {
+            okb.writeUtf8("{\"index\":{\"_index\":\"")
+                    .writeUtf8(index)
+                    .writeUtf8("\",\"_type\":\"")
+                    .writeUtf8(INDEX_TYPE)
+                    .writeUtf8("\"}}");
+            okb.write(LINE_SEPARATOR_BYTES);
+            try {
+                ObjectMapper.DEFAULT_JSON_MAPPER.write(okb.outputStream(), source);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+            okb.write(LINE_SEPARATOR_BYTES);
+        }
+        batchLock.lock();
         try {
-            for (T source : sourceList) {
-                okBuffer.writeUtf8("{\"index\":{\"_index\":\"")
-                        .writeUtf8(index)
-                        .writeUtf8("\",\"_type\":\"")
-                        .writeUtf8(INDEX_TYPE)
-                        .writeUtf8("\"}}\n");
-                ObjectMapper.DEFAULT_JSON_MAPPER.write(okBuffer.outputStream(), source);
-                okBuffer.writeUtf8("\n");
-            }
-            // 此处不能使用HttpBasicAuthenticator因为OkHttp的灵活性,它不会一开始就带上Basic验证头,
-            // 直到服务器返回401才会去执行authenticator的代码,这时okBuffer已经被读了...
-            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
-            if(needBasicAuth){
-                requestBuilder.header("Authorization", Credentials.basic(username, password));
-            }
-            httpInterface.requestForObject(requestBuilder
-                    .post(BufferRequestBody.create(HttpHelper.JSON_UTF8, okBuffer)).build(), String.class);
+            buffer.writeAll(okb);
         } catch (Exception e) {
-            logger.error(e.getMessage() + ",log: " + okBuffer.toString(), e);
+            logger.error(e.getMessage(), e);
+        } finally {
+            batchLock.unlock();
         }
     }
 
     /**
-     * 批量写日志
+     * Send buffer to Elasticsearch
      *
-     * @param logClass - 日志类型
-     * @param buffer - 日志Buffer 必须为同一索引
-     * @param <T>
+     * @param force - 是否强制发送
      */
-    public <T> void writeBulkLog(Class<?> logClass,List<okio.Buffer> buffer) {
-        if (buffer == null || buffer.isEmpty()) {
-            return;
-        }
-        if(!needLog) {
-            return;
-        }
-        String index = regMap.get(logClass);
-        if (StringUtils.isBlank(index)) {
-            return;
-        }
-        StringBuilder urlBuilder = new StringBuilder(50);
-        urlBuilder.append(clusters)
-                .append("/").append("_bulk");
-        okio.Buffer okBuffer = new okio.Buffer();
+    public void processLogBuffer(boolean force) {
+        okio.Buffer bufferData = null;
+        batchLock.lock();
         try {
-            for (okio.Buffer source : buffer) {
-                okBuffer.writeUtf8("{\"index\":{\"_index\":\"")
-                        .writeUtf8(index)
-                        .writeUtf8("\",\"_type\":\"")
-                        .writeUtf8(INDEX_TYPE)
-                        .writeUtf8("\"}}\n");
-                okBuffer.write(source,source.size());
-                okBuffer.writeUtf8("\n");
+            if (force || buffer.size() > minBytesOfBatch) {
+                bufferData = buffer;
+                buffer = new okio.Buffer();
             }
-            // 此处不能使用HttpBasicAuthenticator因为OkHttp的灵活性,它不会一开始就带上Basic验证头,
-            // 直到服务器返回401才会去执行authenticator的代码,这时okBuffer已经被读了...
-            Request.Builder requestBuilder = new Request.Builder().url(urlBuilder.toString());
-            if(needBasicAuth){
+        } finally {
+            batchLock.unlock();
+        }
+        if (bufferData == null || bufferData.size() == 0) {
+            return;
+        }
+        try {
+            Request.Builder requestBuilder = new Request.Builder().url(clusters + esBulk);
+            if (needBasicAuth) {
                 requestBuilder.header("Authorization", Credentials.basic(username, password));
             }
-            httpInterface.requestForObject(requestBuilder
-                    .post(BufferRequestBody.create(HttpHelper.JSON_UTF8, okBuffer)).build(), String.class);
+            httpInterface.requestForObject(requestBuilder.post(BufferRequestBody.create(HttpHelper.JSON_UTF8,
+                    bufferData)).build(), String.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 关闭写日志系统
+     */
+    public void destroyLog() {
+        if (needLog) {
+            processLogBuffer(true);
+            daemonExporter.readyDestroy();
+            batchExecutor.shutdown();
         }
     }
 
@@ -512,5 +579,55 @@ public class LogService {
             logger.error(e.getMessage(), e);
         }
         return mapQueryResponseToSearchResponse(resp,tClass);
+    }
+
+    /**
+     * 后台写日志线程
+     */
+    public class ElasticsearchDaemonExporter extends Thread {
+
+        /**
+         * 运行标记.
+         */
+        private volatile boolean isRunning = false;
+
+        /**
+         * 下一次运行时间
+         */
+        private volatile long nextScanTime = 0;
+
+        /**
+         * 初始化
+         */
+        public void init() {
+            isRunning = true;
+        }
+
+        /**
+         * 销毁标记.
+         */
+        public void readyDestroy() {
+            isRunning = false;
+        }
+
+        @Override
+        public void run() {
+            while (isRunning) {
+                try {
+                    if (nextScanTime < System.currentTimeMillis()) {
+                        nextScanTime = System.currentTimeMillis() + maxFlushInMilliseconds;
+                        batchExecutor.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                processLogBuffer(false);
+                            }
+                        });
+                    }
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    logger.error("Exception processing log entries", e);
+                }
+            }
+        }
     }
 }
