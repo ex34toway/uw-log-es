@@ -30,7 +30,14 @@ uw:
       # 如果不配置用户名和密码,将不会有Http Basic验证头
       username: admin
       password: admin
-
+      # READ_ONLY: 只读模式; READ_WRITE: 读写模式[会有后台线程开销]
+      mode: READ_WRITE
+      # 刷新Bucket时间毫秒数
+      max-flush-in-milliseconds:
+      # 允许最大Bucket 字节数
+      max-bytes-of-batch: 5*1024*1024
+      # 最大批量线程数
+      max-batch-threads: 3
 ```
 
 #### 基本使用
