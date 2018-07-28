@@ -14,8 +14,8 @@
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
 
-    <name>es-log-client</name>
-	<description>es-log-client</description>
+    <name>uw-log-es</name>
+	<description>uw-log-es</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -166,6 +166,8 @@ public class LogService {
             });
 
             daemonExporter = new ElasticsearchDaemonExporter();
+            daemonExporter.setName("log-es-monitor");
+            daemonExporter.setDaemon(true);
             daemonExporter.init();
             daemonExporter.start();
         } else {
