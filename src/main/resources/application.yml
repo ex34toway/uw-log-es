@@ -1,6 +1,15 @@
+spring:
+  application:
+    name: uw-log-es
+project:
+  version: @project.version@
 uw:
+  auth:
+    client:
+      host-id: 1
   log:
     es:
       username: admin
       password: admin
       clusters: http://localhost:9200
+      app-info-overwrite: true

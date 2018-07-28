@@ -20,6 +20,7 @@ import uw.httpclient.util.BufferRequestBody;
 import uw.log.es.util.IndexConfigVo;
 import uw.log.es.vo.ESDataList;
 import uw.log.es.LogClientProperties;
+import uw.log.es.vo.LogBaseVo;
 import uw.log.es.vo.SearchResponse;
 
 import java.nio.charset.Charset;
@@ -135,10 +136,42 @@ public class LogService {
      */
     private final Map<Class<?>,IndexConfigVo> regMap = Maps.newHashMap();
 
-    public LogService(final LogClientProperties logClientProperties) {
+    /**
+     * 应用名称
+     */
+    private final String appName;
+
+    /**
+     * 应用主机信息
+     */
+    private final String appHost;
+
+    /**
+     * 是否添加执行应用信息
+     */
+    private final boolean appInfoOverwrite;
+
+    /**
+     * Ctor
+     *
+     * @param logClientProperties     配置器
+     * @param appName                 应用名称
+     * @param appHost                 应用主机信息
+     */
+    public LogService(final LogClientProperties logClientProperties,final String appName,
+                      final String appHost) {
         this.clusters = logClientProperties.getEs().getClusters();
-        if(StringUtils.isBlank(this.clusters)) {
+        if (StringUtils.isBlank(this.clusters)) {
             throw new RuntimeException("ES clusters must config");
+        }
+        if (logClientProperties.getEs().isAppInfoOverwrite()) {
+            this.appInfoOverwrite = true;
+            this.appName = appName;
+            this.appHost = appHost;
+        } else {
+            this.appInfoOverwrite = false;
+            this.appName = null;
+            this.appHost = null;
         }
         this.username = logClientProperties.getEs().getUsername();
         this.password = logClientProperties.getEs().getPassword();
@@ -335,13 +368,17 @@ public class LogService {
      *
      * @param source 日志对象
      */
-    public void writeLog(Object source) {
+    public <T extends LogBaseVo> void writeLog(T source) {
         if (!needLog) {
             return;
         }
         String index = getIndex(source.getClass());
         if (StringUtils.isBlank(index)) {
             return;
+        }
+        if (appInfoOverwrite) {
+            source.setAppName(appName);
+            source.setAppHost(appHost);
         }
         okio.Buffer okb = new okio.Buffer();
         okb.writeUtf8("{\"index\":{\"_index\":\"")
@@ -372,7 +409,7 @@ public class LogService {
      * @param sourceList 日志对象列表
      * @param <T>
      */
-    public <T> void writeBulkLog(List<T> sourceList) {
+    public <T extends LogBaseVo> void writeBulkLog(List<T> sourceList) {
         if (sourceList == null || sourceList.isEmpty()) {
             return;
         }
@@ -385,6 +422,10 @@ public class LogService {
         }
         okio.Buffer okb = new okio.Buffer();
         for (T source : sourceList) {
+            if (appInfoOverwrite) {
+                source.setAppName(appName);
+                source.setAppHost(appHost);
+            }
             okb.writeUtf8("{\"index\":{\"_index\":\"")
                     .writeUtf8(index)
                     .writeUtf8("\",\"_type\":\"")

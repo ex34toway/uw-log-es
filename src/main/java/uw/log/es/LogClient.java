@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uw.log.es.service.LogService;
 import uw.log.es.vo.ESDataList;
+import uw.log.es.vo.LogBaseVo;
 import uw.log.es.vo.SearchResponse;
 
 import java.util.List;
@@ -69,7 +70,7 @@ public class LogClient {
      *
      * @param source 日志对象
      */
-    public void log(Object source) {
+    public <T extends LogBaseVo> void log(T source) {
         logService.writeLog(source);
     }
 
@@ -79,7 +80,7 @@ public class LogClient {
      * @param sourceList 日志对象列表
      * @param <T>
      */
-    public <T> void bulkLog(List<T> sourceList) {
+    public <T extends LogBaseVo> void bulkLog(List<T> sourceList) {
         logService.writeBulkLog(sourceList);
     }
 

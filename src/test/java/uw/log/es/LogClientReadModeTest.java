@@ -30,8 +30,9 @@ public class LogClientReadModeTest {
         LogClientProperties.EsConfig esConfig = new LogClientProperties.EsConfig();
         esConfig.setClusters("http://192.168.88.16:9200");
         esConfig.setMode(LogClientProperties.LogMode.READ_ONLY);
+        esConfig.setAppInfoOverwrite(false);
         logClientProperties.setEs(esConfig);
-        logClient = new LogClient(new LogService(logClientProperties));
+        logClient = new LogClient(new LogService(logClientProperties,null,null));
         logClient.regLogObject(LogInterface.class);
         logClient.regLogObject(LogInterfaceOrder.class);
     }

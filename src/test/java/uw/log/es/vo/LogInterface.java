@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LogInterface implements Serializable {
+public class LogInterface extends LogBaseVo implements Serializable {
     private static final long serialVersionUID = -6488666771783357081L;
 
     public static LogInterface init(int interfaceType, int interfaceConfigId, long saasId, int productType, long productId,

@@ -54,6 +54,11 @@ public class LogClientProperties {
         private String esBulk = "/_bulk";
 
         /**
+         * 是否添加执行应用信息
+         */
+        private boolean appInfoOverwrite = true;
+
+        /**
          * READ_ONLY: 只读模式; READ_WRITE: 读写模式[会有后台线程开销]
          */
         private LogMode mode = LogMode.READ_WRITE;
@@ -127,6 +132,14 @@ public class LogClientProperties {
 
         public void setEsBulk(String esBulk) {
             this.esBulk = esBulk;
+        }
+
+        public boolean isAppInfoOverwrite() {
+            return appInfoOverwrite;
+        }
+
+        public void setAppInfoOverwrite(boolean appInfoOverwrite) {
+            this.appInfoOverwrite = appInfoOverwrite;
         }
 
         public LogMode getMode() {
