@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uw.auth.client.AuthClientProperties;
 import uw.log.es.service.LogService;
 
 import javax.annotation.PreDestroy;
@@ -37,11 +38,6 @@ public class LogClientAutoConfiguration {
      */
     @Value("${spring.cloud.consul.discovery.ip-address:}")
     private String appHost;
-    /**
-     * hostId
-     */
-    @Value("${uw.auth.client.host-id}")
-    private String hostId;
 
     private LogClient logClient;
 
@@ -52,7 +48,8 @@ public class LogClientAutoConfiguration {
      * @return
      */
     @Bean
-    public LogClient logClient(final LogClientProperties logClientProperties) {
+    public LogClient logClient(final LogClientProperties logClientProperties,
+                               final AuthClientProperties authClientProperties) {
         if (StringUtils.isBlank(appHost)) {
             try {
                 InetAddress address = InetAddress.getLocalHost();
@@ -62,7 +59,7 @@ public class LogClientAutoConfiguration {
             }
         }
         appName = appName + "/" + appVersion;
-        appHost = appHost + "/" + hostId;
+        appHost = appHost + "/" + authClientProperties.getHostId();
         logClient = new LogClient(new LogService(logClientProperties,appName,appHost));
         return logClient;
     }

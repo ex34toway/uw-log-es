@@ -5,7 +5,7 @@
     <groupId>com.umtone</groupId>
     <artifactId>uw-log-es</artifactId>
     <packaging>jar</packaging>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -74,6 +74,12 @@
             <groupId>com.umtone</groupId>
             <artifactId>uw-httpclient</artifactId>
             <version>0.6.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.umtone</groupId>
+            <artifactId>uw-auth-client</artifactId>
+            <version>2.0.8</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
