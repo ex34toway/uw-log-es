@@ -3,6 +3,7 @@
 # uw-log-es
 
 #### 更新日志
+    0.2.4 时间或者Buffer之间成立即写
     0.2.3 通过uw-auth-client拿到host-id
     0.2.2 写上日志应用信息
     0.2.1 守护线程模式为daemon

@@ -54,7 +54,7 @@ public class LogService {
     /**
      * 换行符字节
      */
-    public static final byte[] LINE_SEPARATOR_BYTES = System.getProperty("line.separator").getBytes(LOG_CHARSET);
+    private static final byte[] LINE_SEPARATOR_BYTES = System.getProperty("line.separator").getBytes(LOG_CHARSET);
 
     /**
      * httpInterface
@@ -94,22 +94,22 @@ public class LogService {
     /**
      * 模式
      */
-    private LogClientProperties.LogMode mode;
+    private final LogClientProperties.LogMode mode;
 
     /**
      * 刷新Bucket时间毫秒数
      */
-    private long maxFlushInMilliseconds;
+    private final long maxFlushInMilliseconds;
 
     /**
-     * 允许最大Bucket 字节数。
+     * 允许最大Bucket字节数
      */
-    private long minBytesOfBatch;
+    private final long maxBytesOfBatch;
 
     /**
-     * 最大批量线程数。
+     * 最大批量线程数
      */
-    private int maxBatchThreads;
+    private final int maxBatchThreads;
 
     /**
      * buffer
@@ -184,7 +184,7 @@ public class LogService {
                 .build());
         this.esBulk = logClientProperties.getEs().getEsBulk();
         this.maxFlushInMilliseconds = logClientProperties.getEs().getMaxFlushInMilliseconds();
-        this.minBytesOfBatch = logClientProperties.getEs().getMaxBytesOfBatch();
+        this.maxBytesOfBatch = logClientProperties.getEs().getMaxBytesOfBatch();
         this.maxBatchThreads = logClientProperties.getEs().getMaxBatchThreads();
         this.mode = logClientProperties.getEs().getMode();
         // 如果
@@ -452,20 +452,19 @@ public class LogService {
     /**
      * Send buffer to Elasticsearch
      *
-     * @param force - 是否强制发送
      */
-    public void processLogBuffer(boolean force) {
+    public void processLogBuffer() {
         okio.Buffer bufferData = null;
         batchLock.lock();
         try {
-            if (force || buffer.size() > minBytesOfBatch) {
+            if (buffer.size() > 0) {
                 bufferData = buffer;
                 buffer = new okio.Buffer();
             }
         } finally {
             batchLock.unlock();
         }
-        if (bufferData == null || bufferData.size() == 0) {
+        if (bufferData == null) {
             return;
         }
         try {
@@ -487,7 +486,7 @@ public class LogService {
         if (needLog) {
             daemonExporter.readyDestroy();
             batchExecutor.shutdown();
-            processLogBuffer(true);
+            processLogBuffer();
         }
     }
 
@@ -684,12 +683,12 @@ public class LogService {
         public void run() {
             while (isRunning) {
                 try {
-                    if (nextScanTime < System.currentTimeMillis()) {
+                    if (buffer.size() > maxBytesOfBatch || nextScanTime < System.currentTimeMillis()) {
                         nextScanTime = System.currentTimeMillis() + maxFlushInMilliseconds;
                         batchExecutor.submit(new Runnable() {
                             @Override
                             public void run() {
-                                processLogBuffer(false);
+                                processLogBuffer();
                             }
                         });
                     }
