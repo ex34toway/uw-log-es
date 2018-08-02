@@ -32,8 +32,8 @@ public class LogClientWriteModeTest {
         esConfig.setMaxBatchThreads(5);
         logClientProperties.setEs(esConfig);
         logClient = new LogClient(new LogService(logClientProperties,null,null));
-        logClient.regLogObject(LogInterface.class,null,"_yyyy-MM");
-        logClient.regLogObject(LogInterfaceOrder.class,null,"_yyyy-MM");
+        logClient.regLogObjectWithIndexPattern(LogInterface.class,"_yyyy-MM");
+        logClient.regLogObjectWithIndexPattern(LogInterfaceOrder.class,"_yyyy-MM");
     }
 
     @Test

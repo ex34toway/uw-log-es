@@ -146,7 +146,7 @@ public class LogClientReadModeTest {
     @Test
     public void testQueryLogBySql() {
         SearchResponse<LogInterface> response = logClient.sqlQueryLogSearchResponse(LogInterface.class,
-                "select * from "+logClient.getRawIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
+                "select * from "+logClient.getQueryIndex(LogInterface.class)+" where responseDate > 1524666600000 limit 10 ");
         response.getHisResponse();
     }
 

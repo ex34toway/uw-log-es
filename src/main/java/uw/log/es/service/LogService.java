@@ -329,12 +329,13 @@ public class LogService {
     public void regLogObject(Class<?> logClass,String index,String indexPattern) {
         String rawIndex = index == null ? buildIndexName(logClass) : index;
         FastDateFormat dateFormat = indexPattern == null ? null : FastDateFormat.getInstance(indexPattern, (TimeZone) null);
-        IndexConfigVo indexConfigVo = new IndexConfigVo(rawIndex, dateFormat);
+        // TODO
+        IndexConfigVo indexConfigVo = new IndexConfigVo(rawIndex,rawIndex+"*", dateFormat);
         regMap.put(logClass, indexConfigVo);
     }
 
     /**
-     * 查询日志索引
+     * 获取日志配置的索引值
      *
      * @param logClass
      */
@@ -344,6 +345,19 @@ public class LogService {
             return null;
         }
         return configVo.getIndex();
+    }
+
+    /**
+     * 获取日志的查询索引
+     *
+     * @param logClass
+     */
+    public String getQueryIndex(Class<?> logClass) {
+        IndexConfigVo configVo = regMap.get(logClass);
+        if (configVo == null) {
+            return null;
+        }
+        return configVo.getQueryIndex();
     }
 
     /**

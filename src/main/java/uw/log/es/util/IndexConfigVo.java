@@ -13,20 +13,30 @@ public class IndexConfigVo {
     /**
      * 索引名称
      */
-    private String index;
+    private final String index;
+
+    /**
+     * 查询索引,它通常可以是index*模式
+     */
+    private final String queryIndex;
 
     /**
      * 索引Pattern
      */
-    private FastDateFormat indexPattern;
+    private final FastDateFormat indexPattern;
 
-    public IndexConfigVo(String index, FastDateFormat indexPattern) {
+    public IndexConfigVo(String index,String queryIndex,final FastDateFormat indexPattern) {
         this.index = index;
+        this.queryIndex = queryIndex;
         this.indexPattern = indexPattern;
     }
 
     public String getIndex() {
         return index;
+    }
+
+    public String getQueryIndex() {
+        return queryIndex;
     }
 
     public FastDateFormat getIndexPattern() {

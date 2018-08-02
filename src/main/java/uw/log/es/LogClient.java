@@ -66,13 +66,23 @@ public class LogClient {
     }
 
     /**
-     * 查询日志索引
+     * 获取日志配置的索引值
      *
      * @param logClass
      * @return
      */
     public String getRawIndex(Class<?> logClass) {
         return logService.getRawIndex(logClass);
+    }
+
+    /**
+     * 获取日志的查询索引
+     *
+     * @param logClass
+     * @return
+     */
+    public String getQueryIndex(Class<?> logClass) {
+        return logService.getQueryIndex(logClass);
     }
 
     /**
@@ -110,7 +120,7 @@ public class LogClient {
      * @return
      */
     public <T> List<T> simpleQueryLog(Class<T> tClass,String simpleQuery) {
-        return logService.simpleQueryLog(tClass,logService.getRawIndex(tClass),simpleQuery);
+        return logService.simpleQueryLog(tClass,logService.getQueryIndex(tClass),simpleQuery);
     }
 
     /**
@@ -135,7 +145,7 @@ public class LogClient {
      * @return
      */
     public <T> SearchResponse<T> simpleQueryLogSearchResponse(Class<T> tClass, String simpleQuery) {
-        return logService.simpleQueryLogSearchResponse(tClass,logService.getRawIndex(tClass),simpleQuery);
+        return logService.simpleQueryLogSearchResponse(tClass,logService.getQueryIndex(tClass),simpleQuery);
     }
 
     /**
@@ -160,7 +170,7 @@ public class LogClient {
      * @return
      */
     public <T> List<T> dslQueryLog(Class<T> tClass,String dslQuery) {
-        return logService.dslQueryLog(tClass,logService.getRawIndex(tClass),dslQuery);
+        return logService.dslQueryLog(tClass,logService.getQueryIndex(tClass),dslQuery);
     }
 
     /**
@@ -185,7 +195,7 @@ public class LogClient {
      * @return
      */
     public <T> SearchResponse<T> dslQueryLogSearchResponse(Class<T> tClass,String dslQuery) {
-        return logService.dslQueryLogSearchResponse(tClass,logService.getRawIndex(tClass),dslQuery);
+        return logService.dslQueryLogSearchResponse(tClass,logService.getQueryIndex(tClass),dslQuery);
     }
 
     /**
