@@ -57,6 +57,11 @@ public class LogService {
     private static final byte[] LINE_SEPARATOR_BYTES = System.getProperty("line.separator").getBytes(LOG_CHARSET);
 
     /**
+     * 时间序列格式化
+     */
+    private static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZZ", (TimeZone) null);
+
+    /**
      * httpInterface
      */
     private final HttpInterface httpInterface;
@@ -436,6 +441,9 @@ public class LogService {
         }
         okio.Buffer okb = new okio.Buffer();
         for (T source : sourceList) {
+            // 写上时间戳
+            source.setTimestamp(DATE_FORMAT.format(System.currentTimeMillis()));
+            // 是否需要覆写
             if (appInfoOverwrite) {
                 source.setAppName(appName);
                 source.setAppHost(appHost);
