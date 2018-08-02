@@ -40,8 +40,18 @@ public class LogClient {
      * @param logClass 日志类
      * @param index    自定义索引名称
      */
-    public void regLogObject(Class<?> logClass,String index) {
+    public void regLogObjectWithIndex(Class<?> logClass,String index) {
         logService.regLogObject(logClass,index,null);
+    }
+
+    /**
+     * 注册日志类型
+     *
+     * @param logClass 日志类
+     * @param indexPattern 索引模式
+     */
+    public void regLogObjectWithIndexPattern(Class<?> logClass,String indexPattern) {
+        logService.regLogObject(logClass,null,indexPattern);
     }
 
     /**
@@ -51,7 +61,7 @@ public class LogClient {
      * @param index    自定义索引名称
      * @param indexPattern 索引模式
      */
-    public void regLogObject(Class<?> logClass,String index,String indexPattern) {
+    public void regLogObjectWithIndexAndIndexPattern(Class<?> logClass,String index,String indexPattern) {
         logService.regLogObject(logClass,index,indexPattern);
     }
 
