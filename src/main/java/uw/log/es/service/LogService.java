@@ -395,6 +395,9 @@ public class LogService {
         if (StringUtils.isBlank(index)) {
             return;
         }
+        // 写上时间戳
+        source.setTimestamp(DATE_FORMAT.format(System.currentTimeMillis()));
+        // 是否需要覆写
         if (appInfoOverwrite) {
             source.setAppName(appName);
             source.setAppHost(appHost);
