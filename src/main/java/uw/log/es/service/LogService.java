@@ -27,10 +27,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -117,6 +114,11 @@ public class LogService {
     private final int maxBatchThreads;
 
     /**
+     * 最大批量线程队列数
+     */
+    private final int maxBatchQueueSize;
+
+    /**
      * buffer
      */
     private okio.Buffer buffer = new okio.Buffer();
@@ -191,11 +193,12 @@ public class LogService {
         this.maxFlushInMilliseconds = logClientProperties.getEs().getMaxFlushInMilliseconds();
         this.maxBytesOfBatch = logClientProperties.getEs().getMaxBytesOfBatch();
         this.maxBatchThreads = logClientProperties.getEs().getMaxBatchThreads();
+        this.maxBatchQueueSize = logClientProperties.getEs().getMaxBatchQueueSize();
         this.mode = logClientProperties.getEs().getMode();
         // 如果
         if (mode == LogClientProperties.LogMode.READ_WRITE) {
             this.needLog = true;
-            batchExecutor = new ThreadPoolExecutor(1, maxBatchThreads, 30, TimeUnit.SECONDS, new SynchronousQueue<>(),
+            batchExecutor = new ThreadPoolExecutor(1, maxBatchThreads, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(maxBatchQueueSize),
                     new ThreadFactoryBuilder().setDaemon(true).setNameFormat("log-es-batch-%d").build(), new RejectedExecutionHandler() {
                 @Override
                 public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {

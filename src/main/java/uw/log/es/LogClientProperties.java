@@ -78,6 +78,11 @@ public class LogClientProperties {
          */
         private int maxBatchThreads = 3;
 
+        /**
+         * 最大批量线程队列数
+         */
+        private int maxBatchQueueSize = 10;
+
         public long getConnectTimeout() {
             return connectTimeout;
         }
@@ -172,6 +177,14 @@ public class LogClientProperties {
 
         public void setMaxBatchThreads(int maxBatchThreads) {
             this.maxBatchThreads = maxBatchThreads;
+        }
+
+        public int getMaxBatchQueueSize() {
+            return maxBatchQueueSize;
+        }
+
+        public void setMaxBatchQueueSize(int maxBatchQueueSize) {
+            this.maxBatchQueueSize = maxBatchQueueSize;
         }
     }
 
