@@ -3,6 +3,8 @@ package uw.log.es.vo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import uw.log.es.ser.ObjectAsStringDeserializer;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -25,6 +27,11 @@ public class SearchResponse<T> {
      *
      */
     private HitsResponse<T> hitsResponse = new HitsResponse<T>();
+
+    /**
+     * 聚合结果
+     */
+    private String aggregations;
 
     /**
      * false
@@ -52,6 +59,16 @@ public class SearchResponse<T> {
     @JsonProperty("hits")
     public HitsResponse getHisResponse () {
         return this.hitsResponse;
+    }
+
+    public void setAggregations(String aggregations) {
+        this.aggregations = aggregations;
+    }
+
+    @JsonProperty("aggregations")
+    @JsonDeserialize(using = ObjectAsStringDeserializer.class)
+    public String getAggregations() {
+        return aggregations;
     }
 
     public void setTimedOut(boolean timedOut) {
@@ -209,6 +226,10 @@ public class SearchResponse<T> {
 
     }
 
+    /**
+     * 查询结果集
+     * @param <T>
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class HitsResponse <T> {
